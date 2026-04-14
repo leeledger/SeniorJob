@@ -1,0 +1,87 @@
+.wrap { min-height: 100vh; background: var(--bg); padding-bottom: 80px; }
+.content { max-width: 480px; margin: 0 auto; padding: 0 1rem; }
+
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.25rem 0 1rem;
+}
+.greeting { font-size: 1.05rem; font-weight: 700; color: var(--ink); }
+.location { font-size: 0.8rem; color: var(--ink-3); margin-top: 2px; }
+.pageTitle { font-size: 1.1rem; font-weight: 700; }
+.notifBtn { background: none; border: none; font-size: 1.2rem; }
+
+.balanceCard {
+  background: var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  color: white;
+  margin-bottom: 1.25rem;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.balanceLabel { font-size: 0.75rem; opacity: 0.8; }
+.balanceAmount { font-size: 1.8rem; font-weight: 700; font-family: var(--font-serif); }
+.balanceDetail { font-size: 0.75rem; opacity: 0.75; }
+.withdrawBtn {
+  align-self: flex-start; margin-top: 8px;
+  background: rgba(255,255,255,0.2);
+  color: white; border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 20px; padding: 5px 14px; font-size: 0.8rem; font-weight: 500;
+  transition: background 0.15s;
+}
+.withdrawBtn:hover { background: rgba(255,255,255,0.3); }
+
+.catRow { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 1rem; scrollbar-width: none; }
+.catRow::-webkit-scrollbar { display: none; }
+.catBtn {
+  flex-shrink: 0; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 14px; font-size: 0.8rem; color: var(--ink-3);
+  transition: all 0.15s;
+}
+.catActive { background: var(--accent); border-color: var(--accent); color: white; font-weight: 500; }
+
+.sectionTitle { font-size: 0.9rem; font-weight: 700; color: var(--ink); margin: 1rem 0 0.6rem; display: flex; align-items: center; gap: 6px; }
+.urgentBadge { background: #FEE2E2; color: #B91C1C; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+
+.totalCard {
+  background: var(--accent-light); border-radius: var(--radius);
+  padding: 1.25rem; margin-bottom: 1rem; text-align: center;
+}
+.totalLabel { font-size: 0.75rem; color: var(--accent); margin-bottom: 4px; }
+.totalAmount { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+.totalSub { font-size: 0.75rem; color: var(--ink-3); margin-top: 4px; }
+
+.historyCard {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1rem 1.25rem; margin-bottom: 10px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.hLeft { display: flex; flex-direction: column; gap: 3px; }
+.hCompany { font-size: 0.9rem; font-weight: 600; }
+.hTask { font-size: 0.75rem; color: var(--ink-3); }
+.hStars { font-size: 0.75rem; color: #F59E0B; }
+.hRight { text-align: right; }
+.hPay { font-size: 0.95rem; font-weight: 700; color: var(--accent); }
+.hStatus { font-size: 0.7rem; color: var(--ink-4); margin-top: 2px; }
+
+.profileCard {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 1.5rem; margin-bottom: 1rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.avatar {
+  width: 60px; height: 60px; border-radius: 50%; background: var(--accent-light);
+  color: var(--accent); font-size: 1.4rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.profileName { font-size: 1.1rem; font-weight: 700; }
+.profileInfo { font-size: 0.8rem; color: var(--ink-3); }
+.ratingRow { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.ratingNum { font-size: 1rem; font-weight: 700; color: var(--accent); }
+.ratingStars { font-size: 0.9rem; color: #F59E0B; }
+.ratingCount { font-size: 0.75rem; color: var(--ink-3); }
+
+.profileSection { margin-bottom: 1rem; }
+.profileSectionTitle { font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; }
+.tagRow { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-size: 0.78rem; padding: 4px 12px; border-radius: 20px; background: var(--bg); border: 1px solid var(--border); color: var(--ink-3); }
+.tagGold { background: #FFFBEB; border-color: #FDE68A; color: #92400E; }
+.tagGreen { background: var(--accent-light); border-color: #A7F3D0; color: var(--accent); }

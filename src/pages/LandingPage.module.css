@@ -1,0 +1,151 @@
+.wrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem 3rem;
+  background: var(--bg-warm);
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  padding-top: 2rem;
+}
+
+.badge {
+  display: inline-block;
+  background: var(--accent-light);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 1.25rem;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--ink);
+  margin-bottom: 1rem;
+}
+
+.title span {
+  color: var(--accent);
+}
+
+.sub {
+  font-size: 1rem;
+  color: var(--ink-3);
+  line-height: 1.8;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 2rem;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.cardEmployer:hover {
+  border-color: var(--accent-2);
+}
+
+.cardIcon {
+  font-size: 2.2rem;
+  margin-bottom: 4px;
+}
+
+.cardTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.cardDesc {
+  font-size: 0.8rem;
+  color: var(--ink-3);
+  line-height: 1.6;
+}
+
+.cardCta {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-top: 4px;
+}
+
+.cardEmployer .cardCta {
+  color: var(--accent-2);
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.5rem;
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 0.75rem;
+}
+
+.stat {
+  flex: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.statNum {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.statLabel {
+  font-size: 0.65rem;
+  color: var(--ink-4);
+  line-height: 1.4;
+}
+
+.statDiv {
+  width: 1px;
+  height: 32px;
+  background: var(--border);
+}
+
+.source {
+  font-size: 0.65rem;
+  color: var(--ink-4);
+  text-align: center;
+}

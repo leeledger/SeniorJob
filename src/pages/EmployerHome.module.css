@@ -1,0 +1,122 @@
+.wrap { min-height: 100vh; background: var(--bg); padding-bottom: 80px; }
+.content { max-width: 480px; margin: 0 auto; padding: 0 1rem; }
+
+.header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 0 1rem; }
+.greeting { font-size: 1.05rem; font-weight: 700; }
+.location { font-size: 0.8rem; color: var(--ink-3); margin-top: 2px; }
+.pageTitle { font-size: 1.1rem; font-weight: 700; }
+.headerBadge { background: var(--accent-2-light); color: var(--accent-2); font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+
+.statsGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+.statCard { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; text-align: center; }
+.statNum { font-size: 1.4rem; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+.statLabel { font-size: 0.72rem; color: var(--ink-3); }
+
+.sectionTitle { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.75rem; }
+
+.applicantCard {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 0.9rem 1rem; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 10px;
+}
+.applicantAvatar {
+  width: 42px; height: 42px; border-radius: 50%; background: var(--accent-light);
+  color: var(--accent); font-size: 1.1rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.applicantInfo { flex: 1; }
+.applicantName { font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.aBadge { font-size: 0.65rem; padding: 2px 7px; border-radius: 20px; background: var(--bg); color: var(--ink-3); border: 1px solid var(--border); }
+.badgeGold { background: #FFFBEB; border-color: #FDE68A; color: #92400E; }
+.badgeGreen { background: var(--accent-light); border-color: #A7F3D0; color: var(--accent); }
+.applicantMeta { font-size: 0.75rem; color: var(--ink-3); margin-bottom: 2px; }
+.applicantRating { font-size: 0.75rem; color: #F59E0B; }
+.applicantActions { display: flex; flex-direction: column; gap: 5px; }
+.acceptBtn {
+  background: var(--accent); color: white; border: none;
+  border-radius: var(--radius-sm); padding: 5px 12px; font-size: 0.75rem; font-weight: 600; cursor: pointer;
+  transition: background 0.15s;
+}
+.acceptBtn:hover { background: #245a40; }
+.rejectBtn {
+  background: none; color: var(--ink-3); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 5px 12px; font-size: 0.75rem; cursor: pointer;
+}
+
+.ctaBox {
+  background: var(--accent-2-light); border-radius: var(--radius); padding: 1.25rem;
+  margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;
+}
+.ctaTitle { font-size: 0.9rem; font-weight: 600; color: var(--ink-2); }
+.ctaBtn {
+  background: var(--accent-2); color: white; border: none;
+  border-radius: 20px; padding: 7px 16px; font-size: 0.82rem; font-weight: 700; cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Form */
+.formWrap { padding-bottom: 2rem; }
+.formGroup { margin-bottom: 1rem; }
+.formRow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--ink-2); margin-bottom: 5px; }
+.input {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 0.9rem; background: var(--bg-card); color: var(--ink);
+  transition: border-color 0.15s; outline: none;
+}
+.input:focus { border-color: var(--accent); }
+.textarea {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 0.9rem; background: var(--bg-card); color: var(--ink); resize: vertical;
+  outline: none; transition: border-color 0.15s;
+}
+.textarea:focus { border-color: var(--accent); }
+
+.urgentToggle { margin-bottom: 1rem; }
+.toggleLabel { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--ink-2); cursor: pointer; }
+.checkbox { width: 16px; height: 16px; accent-color: var(--accent-2); }
+
+.previewBox {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--accent-light); border-radius: var(--radius-sm); padding: 10px 14px;
+  margin-bottom: 1rem; font-size: 0.85rem; color: var(--accent);
+}
+.previewPay { font-weight: 700; }
+
+.postBtn {
+  width: 100%; padding: 14px; background: var(--accent-2); color: white;
+  border: none; border-radius: var(--radius); font-size: 1rem; font-weight: 700; cursor: pointer;
+  transition: background 0.15s;
+}
+.postBtn:hover:not(.postBtnDisabled) { background: #c85a3e; }
+.postBtnDisabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Success */
+.successBox { text-align: center; padding: 3rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.successIcon {
+  width: 64px; height: 64px; border-radius: 50%; background: var(--accent); color: white;
+  font-size: 1.8rem; display: flex; align-items: center; justify-content: center;
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.successTitle { font-size: 1.2rem; font-weight: 700; }
+.successSub { font-size: 0.85rem; color: var(--ink-3); }
+
+/* Manage */
+.manageCard {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 0.9rem 1.1rem; margin-bottom: 10px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.manageTask { font-size: 0.92rem; font-weight: 600; margin-bottom: 3px; }
+.manageMeta { font-size: 0.75rem; color: var(--ink-3); }
+.statusBadge { font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; font-weight: 600; flex-shrink: 0; }
+.statusActive { background: var(--accent-2-light); color: var(--accent-2); }
+.statusDone { background: var(--accent-light); color: var(--accent); }
+
+.newPostBtn {
+  width: 100%; padding: 12px; background: none; border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius); color: var(--ink-3); font-size: 0.88rem; cursor: pointer;
+  margin-top: 4px; transition: all 0.15s;
+}
+.newPostBtn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }

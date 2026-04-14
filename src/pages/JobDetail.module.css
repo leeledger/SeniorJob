@@ -1,0 +1,40 @@
+.wrap { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--bg); padding-bottom: 100px; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 1rem; }
+.backBtn { background: none; border: none; font-size: 0.9rem; color: var(--ink-3); cursor: pointer; }
+.urgentBadge { background: #FEE2E2; color: #B91C1C; font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+
+.hero { background: var(--bg-card); padding: 1.5rem 1.25rem; text-align: center; margin-bottom: 1rem; }
+.logoLarge { width: 60px; height: 60px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+.company { font-size: 0.85rem; color: var(--ink-3); margin-bottom: 4px; }
+.task { font-size: 1.2rem; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+.address { font-size: 0.8rem; color: var(--ink-3); }
+
+.payBar {
+  background: var(--bg-card); border-radius: var(--radius); margin: 0 1rem 1rem;
+  padding: 1rem 1.25rem; display: flex; align-items: center;
+}
+.payItem { flex: 1; text-align: center; display: flex; flex-direction: column; gap: 4px; }
+.piLabel { font-size: 0.7rem; color: var(--ink-4); }
+.piVal { font-size: 1.05rem; font-weight: 700; }
+.piDiv { width: 1px; height: 30px; background: var(--border); }
+
+.section { padding: 0 1rem 1rem; }
+.sectionTitle { font-size: 0.85rem; font-weight: 700; color: var(--ink-3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .04em; }
+.infoRow { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 4px 0; }
+.desc { font-size: 0.9rem; color: var(--ink-2); line-height: 1.7; background: var(--bg-warm); border-radius: var(--radius-sm); padding: 12px; }
+.tagRow { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-size: 0.78rem; padding: 4px 12px; border-radius: 20px; background: var(--bg-card); border: 1px solid var(--border); color: var(--ink-3); }
+
+.qrBox { background: var(--accent-light); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.qrTitle { font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+.qrDesc { font-size: 0.8rem; color: #245a40; line-height: 1.6; }
+
+.cta { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background: var(--bg-card); border-top: 1px solid var(--border); padding: 1rem; }
+.applyBtn {
+  width: 100%; padding: 14px; border: none; border-radius: var(--radius);
+  background: var(--accent); color: white; font-size: 1rem; font-weight: 700;
+  transition: all 0.15s;
+}
+.applyBtn:hover { background: #245a40; }
+.applied { background: var(--border-strong) !important; color: var(--ink-3) !important; }
+.ctaSub { text-align: center; font-size: 0.72rem; color: var(--ink-4); margin-top: 6px; }
