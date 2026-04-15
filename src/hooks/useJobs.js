@@ -2,39 +2,62 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabase.js'
 import { geocodeAddress } from './useLocation.js'
 
-// 민간 구인 공고 목록 — 실시간 구독
+// 좌표 없는 공고 자동 지오코딩 (Nominatim, 1.1초 간격)
+async function backfillCoords(jobs) {
+  const missing = jobs.filter(j => j.address && !j.lat)
+  for (let i = 0; i < missing.length; i++) {
+    await new Promise(r => setTimeout(r, i === 0 ? 0 : 1100))
+    const geo = await geocodeAddress(missing[i].address)
+    if (!geo) continue
+    await supabase
+      .from('jobs')
+      .update({ lat: geo.lat, lng: geo.lng })
+      .eq('id', missing[i].id)
+    // 로컬 상태도 즉시 업데이트
+    missing[i]._resolved = geo
+  }
+}
+
+// 민간 구인 공고 목록 — 실시간 구독 + 자동 좌표 보완
 export function useJobs() {
   const [jobs, setJobs]       = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
 
   useEffect(() => {
-    // 초기 로드
-    supabase
-      .from('jobs')
-      .select('*')
-      .eq('status', '구인중')
-      .order('created_at', { ascending: false })
-      .then(({ data, error }) => {
-        if (error) setError(error.message)
-        else setJobs(data ?? [])
-        setLoading(false)
-      })
+    let cancelled = false
 
-    // 실시간 구독 (새 공고 즉시 반영)
+    const fetchJobs = () =>
+      supabase
+        .from('jobs')
+        .select('*')
+        .eq('status', '구인중')
+        .order('created_at', { ascending: false })
+
+    fetchJobs().then(({ data, error: err }) => {
+      if (cancelled) return
+      if (err) { setError(err.message); setLoading(false); return }
+      const list = data ?? []
+      setJobs(list)
+      setLoading(false)
+      // 좌표 없는 공고 백그라운드 지오코딩 후 다시 fetch
+      if (list.some(j => j.address && !j.lat)) {
+        backfillCoords(list).then(() => {
+          if (cancelled) return
+          fetchJobs().then(({ data }) => { if (data && !cancelled) setJobs(data) })
+        })
+      }
+    })
+
+    // 실시간 구독
     const channel = supabase
       .channel('jobs-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs' }, () => {
-        supabase
-          .from('jobs')
-          .select('*')
-          .eq('status', '구인중')
-          .order('created_at', { ascending: false })
-          .then(({ data }) => { if (data) setJobs(data) })
+        fetchJobs().then(({ data }) => { if (data && !cancelled) setJobs(data) })
       })
       .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
+    return () => { cancelled = true; supabase.removeChannel(channel) }
   }, [])
 
   return { jobs, loading, error }
