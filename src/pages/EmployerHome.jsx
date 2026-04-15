@@ -79,7 +79,7 @@ export default function EmployerHome({ nav }) {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div className={styles.headerBadge}>고용주</div>
-              <button className={styles.exitBtn} onClick={() => nav('landing')}>나가기</button>
+              <button className={styles.exitBtn} onClick={() => nav('back')}>나가기</button>
             </div>
           </div>
 

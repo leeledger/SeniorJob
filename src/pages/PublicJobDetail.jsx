@@ -16,7 +16,7 @@ export default function PublicJobDetail({ job, nav, onBack }) {
   if (!job) return null
 
   const typeColor = job.color || TYPE_COLOR[job.type] || '#374151'
-  const handleBack = onBack ?? (() => nav('senior'))
+  const handleBack = onBack ?? (() => nav('back'))
 
   return (
     <div className={styles.wrap}>

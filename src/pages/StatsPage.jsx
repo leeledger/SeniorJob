@@ -51,7 +51,7 @@ export default function StatsPage({ nav, embedded = false }) {
       {/* 헤더 */}
       <div className={styles.hero}>
         {!embedded && (
-          <button className={styles.backBtn} onClick={() => nav('landing')}>
+          <button className={styles.backBtn} onClick={() => nav('back')}>
             ← 돌아가기
           </button>
         )}

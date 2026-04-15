@@ -17,7 +17,7 @@ export default function QRComplete({ job, nav }) {
     <div className={styles.wrap}>
       {step === 'qr' && (
         <div className={styles.content}>
-          <button className={styles.backBtn} onClick={() => nav('senior')}>← 홈으로</button>
+          <button className={styles.backBtn} onClick={() => nav('back')}>← 뒤로</button>
           <div className={styles.title}>신청 완료!</div>
           <div className={styles.sub}>{job.company}에서 {job.dateLabel} 근무 확정</div>
           <div className={styles.infoCard}>
@@ -90,7 +90,7 @@ export default function QRComplete({ job, nav }) {
               {[1,2,3,4,5].map(s => <span key={s} className={styles.star}>★</span>)}
             </div>
           </div>
-          <button className={styles.homeBtn} onClick={() => nav('senior')}>홈으로 돌아가기</button>
+          <button className={styles.homeBtn} onClick={() => nav('senior', null, { reset: true })}>홈으로 돌아가기</button>
         </div>
       )}
     </div>

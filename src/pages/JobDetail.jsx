@@ -9,7 +9,7 @@ export default function JobDetail({ job, nav }) {
   return (
     <div className={styles.wrap}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => nav('senior')}>← 뒤로</button>
+        <button className={styles.backBtn} onClick={() => nav('back')}>← 뒤로</button>
         {job.urgent && <span className={styles.urgentBadge}>🔥 급구</span>}
       </div>
 

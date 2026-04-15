@@ -82,7 +82,7 @@ export default function SeniorHome({ nav }) {
             </div>
             <div className={styles.headerRight}>
               <button className={styles.notifBtn}>🔔</button>
-              <button className={styles.exitBtn} onClick={() => nav('landing')}>나가기</button>
+              <button className={styles.exitBtn} onClick={() => nav('back')}>나가기</button>
             </div>
           </div>
 
