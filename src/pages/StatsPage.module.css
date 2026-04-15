@@ -1,0 +1,397 @@
+/* ── Layout ── */
+.wrap { min-height: 100vh; background: #F8FAFF; padding-bottom: 60px; }
+.embedded { padding-bottom: 100px; }
+
+/* ── Hero ── */
+.hero {
+  background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 60%, #3B82F6 100%);
+  padding: 2.5rem 1.5rem 2rem;
+  color: white;
+  position: relative;
+}
+.backBtn {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  margin-bottom: 1.2rem;
+  display: block;
+}
+.heroTag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+  margin-bottom: 0.6rem;
+}
+.heroTitle {
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1.25;
+  margin: 0 0 0.75rem;
+}
+.heroTitle span { color: #93C5FD; }
+.heroSub {
+  font-size: 0.82rem;
+  opacity: 0.8;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Section ── */
+.section {
+  margin: 0 1rem 1.5rem;
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.sectionBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid;
+  margin-bottom: 0.6rem;
+}
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 0.75rem;
+  line-height: 1.35;
+}
+.desc {
+  font-size: 0.85rem;
+  color: #374151;
+  line-height: 1.65;
+  margin: 0 0 1.1rem;
+}
+.desc strong { color: #111827; }
+
+/* ── Source tag ── */
+.sourceTag {
+  font-size: 0.68rem;
+  color: #9CA3AF;
+  margin-top: 1rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid #F3F4F6;
+}
+
+/* ── Timeline (Section 1) ── */
+.timeline {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  justify-content: center;
+  margin: 1rem 0;
+  padding: 0.5rem 0;
+}
+.timelineItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+.timelineNow .timelineYear { color: #2563EB; font-weight: 800; }
+.timelineYear { font-size: 0.78rem; font-weight: 600; color: #6B7280; }
+.timelineBar {
+  display: flex;
+  align-items: flex-end;
+  height: 100px;
+}
+.timelineFill {
+  width: 36px;
+  border-radius: 6px 6px 0 0;
+  transition: height 0.6s ease;
+}
+.timelinePct { font-size: 0.88rem; font-weight: 800; color: #111827; }
+.timelineLabel { font-size: 0.65rem; color: #9CA3AF; text-align: center; }
+
+/* ── Big Bar (Section 2) ── */
+.bigBarWrap { margin: 0.75rem 0 1rem; }
+.bigBarLabel { font-size: 0.75rem; color: #6B7280; margin-bottom: 6px; font-weight: 600; }
+.bigBarTrack {
+  display: flex;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #E5E7EB;
+}
+.bigBarFill {
+  background: var(--accent, #10B981);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: white;
+  border-radius: 8px 0 0 8px;
+  transition: width 0.8s ease;
+}
+.bigBarRest {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  color: #9CA3AF;
+  font-weight: 600;
+}
+.bigBarLegend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: #6B7280;
+  margin-top: 6px;
+}
+.legendDot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+
+/* ── Stat Cards ── */
+.cardGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 0.75rem 0;
+}
+.statCard {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+}
+.statNum { font-size: 1.5rem; font-weight: 800; line-height: 1.1; }
+.statUnit { font-size: 0.9rem; font-weight: 600; }
+.statLabel { font-size: 0.72rem; color: #6B7280; margin-top: 4px; }
+.statNote { font-size: 0.65rem; color: #9CA3AF; margin-top: 2px; }
+
+/* ── Callout ── */
+.callout {
+  display: flex;
+  gap: 8px;
+  background: #F0FDF4;
+  border-left: 3px solid var(--accent, #10B981);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  color: #1F2937;
+  line-height: 1.55;
+  margin-top: 0.75rem;
+}
+.calloutIcon { font-size: 0.95rem; flex-shrink: 0; margin-top: 1px; }
+
+/* ── Gap comparison (Section 3) ── */
+.gapWrap { margin: 0.75rem 0; }
+.gapRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.gapLabel { font-size: 0.75rem; color: #4B5563; min-width: 72px; font-weight: 600; }
+.gapBarTrack {
+  flex: 1;
+  height: 22px;
+  background: #F3F4F6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.gapBarFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.7s ease;
+}
+.gapAmt { font-size: 0.8rem; font-weight: 700; min-width: 52px; text-align: right; }
+.gapMarker { text-align: center; margin-top: 6px; }
+.gapArrow { font-size: 0.78rem; font-weight: 700; color: #DC2626; }
+
+/* ── OECD Box ── */
+.oecdBox {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+.oecdTitle { font-size: 0.8rem; font-weight: 700; color: #7F1D1D; margin-bottom: 10px; }
+.oecdNote { font-size: 0.75rem; color: #991B1B; margin-top: 8px; line-height: 1.5; }
+
+/* ── Bar component ── */
+.barRow { margin-bottom: 10px; }
+.barLabel { font-size: 0.75rem; color: #4B5563; margin-bottom: 4px; font-weight: 600; }
+.barTrack {
+  height: 28px;
+  background: #F3F4F6;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.barFill {
+  height: 100%;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+  transition: width 0.7s ease;
+  min-width: 40px;
+}
+.barVal { font-size: 0.75rem; font-weight: 700; color: white; }
+.barSub { font-size: 0.65rem; color: #9CA3AF; margin-top: 2px; }
+
+/* ── Route bars (Section 4) ── */
+.routeWrap { margin: 0.75rem 0; }
+.routeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.routeLabel { font-size: 0.72rem; color: #4B5563; min-width: 90px; font-weight: 500; line-height: 1.3; }
+.routeBarTrack {
+  flex: 1;
+  height: 26px;
+  background: #F3F4F6;
+  border-radius: 6px;
+  overflow: visible;
+}
+.routeBarFill {
+  height: 100%;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+  transition: width 0.7s ease;
+  min-width: 32px;
+}
+
+/* ── Retire note ── */
+.retireNote {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.78rem;
+  color: #374151;
+  line-height: 1.6;
+  margin-top: 0.75rem;
+  text-align: center;
+}
+.retireNote span { color: #9CA3AF; font-size: 0.72rem; }
+
+/* ── Timee grid (Section 5) ── */
+.timeeGrid {
+  display: flex;
+  gap: 12px;
+  margin: 0.75rem 0;
+  align-items: stretch;
+}
+.timeeCard {
+  background: linear-gradient(135deg, #7C3AED, #9333EA);
+  border-radius: 12px;
+  padding: 1rem;
+  color: white;
+  text-align: center;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+.timeeNum { font-size: 1.3rem; font-weight: 800; }
+.timeeLabel { font-size: 0.65rem; opacity: 0.85; line-height: 1.4; }
+.timeeFeatures {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.timeeFeature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #F5F3FF;
+  border: 1px solid #EDE9FE;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  color: #4C1D95;
+  font-weight: 500;
+}
+
+/* ── Conclusion grid (Section 6) ── */
+.conclusionGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin: 0.75rem 0;
+}
+.conclusionCard {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.conclusionIcon { font-size: 1.2rem; }
+.conclusionLabel { font-size: 0.88rem; font-weight: 700; color: #111827; }
+.conclusionDesc { font-size: 0.75rem; color: #6B7280; line-height: 1.5; }
+
+/* ── Feature strip ── */
+.featureStrip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin: 1rem 0;
+  background: #F0FDF4;
+  border: 1px solid #A7F3D0;
+  border-radius: 12px;
+  padding: 1rem 0.75rem;
+}
+.featureItem { text-align: center; }
+.featureIcon { font-size: 1.1rem; display: block; margin-bottom: 4px; }
+.featureTitle { font-size: 0.68rem; font-weight: 700; color: #065F46; }
+.featureDesc { font-size: 0.6rem; color: #6B7280; margin-top: 2px; line-height: 1.3; }
+
+/* ── CTA ── */
+.ctaRow { display: flex; gap: 10px; margin-top: 1rem; }
+.ctaBtn {
+  flex: 1;
+  background: var(--accent, #10B981);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 13px;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.ctaBtnSecondary {
+  background: #1D4ED8;
+}
+
+/* ── Sources footer ── */
+.sources {
+  margin: 0 1rem 2rem;
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.sourcesTitle { font-size: 0.85rem; font-weight: 700; color: #374151; margin-bottom: 0.75rem; }
+.sourceItem { font-size: 0.72rem; color: #6B7280; margin-bottom: 5px; line-height: 1.5; }

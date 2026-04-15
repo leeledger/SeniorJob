@@ -3,6 +3,7 @@ import styles from './BottomNav.module.css'
 const SENIOR_TABS = [
   { id: 'home', icon: '🏠', label: '홈' },
   { id: 'history', icon: '📋', label: '이력' },
+  { id: 'stats', icon: '📊', label: '통계' },
   { id: 'profile', icon: '👤', label: '내 정보' },
 ]
 

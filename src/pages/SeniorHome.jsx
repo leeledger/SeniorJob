@@ -7,6 +7,7 @@ import JobCard from '../components/JobCard.jsx'
 import PublicJobCard from '../components/PublicJobCard.jsx'
 import SearchBar from '../components/SearchBar.jsx'
 import BottomNav from '../components/BottomNav.jsx'
+import StatsPage from './StatsPage.jsx'
 import styles from './SeniorHome.module.css'
 
 // 검색어 매칭 헬퍼
@@ -106,6 +107,20 @@ export default function SeniorHome({ nav }) {
               🏛 공공 일자리
               {!pubLoading && <span className={styles.tabCount}>{publicJobs.length}</span>}
             </button>
+          </div>
+
+          {/* Timee 가치 배지 스트립 */}
+          <div className={styles.timeeStrip}>
+            {[
+              { icon: '🚀', label: '면접 없음' },
+              { icon: '⚡', label: '당일 시작' },
+              { icon: '💰', label: '당일 정산' },
+              { icon: '📍', label: '위치 기반' },
+            ].map(({ icon, label }) => (
+              <div key={label} className={styles.timeeBadge}>
+                <span>{icon}</span> {label}
+              </div>
+            ))}
           </div>
 
           {/* 검색창 — 공통 */}
@@ -241,6 +256,10 @@ export default function SeniorHome({ nav }) {
             </>
           )}
         </div>
+      )}
+
+      {tab === 'stats' && (
+        <StatsPage nav={nav} embedded={true} />
       )}
 
       {tab === 'history' && (
