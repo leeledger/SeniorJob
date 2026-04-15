@@ -67,6 +67,21 @@
   font-weight: 700;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
+.tabCount {
+  display: inline-block;
+  background: var(--accent-light);
+  color: var(--accent);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 10px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+.sourceTab:not(.sourceTabActive) .tabCount {
+  background: var(--border);
+  color: var(--ink-4);
+}
 
 /* 공공 일자리 안내 배너 */
 .publicNotice {

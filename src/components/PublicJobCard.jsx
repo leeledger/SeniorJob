@@ -1,6 +1,6 @@
 import styles from './PublicJobCard.module.css'
 
-const TYPE_COLORS = {
+const TYPE_COLOR = {
   '공공형':       '#15803D',
   '시장형':       '#1D4ED8',
   '사회서비스형': '#9333EA',
@@ -9,46 +9,52 @@ const TYPE_COLORS = {
 }
 
 export default function PublicJobCard({ job, onApply, applied }) {
-  const typeColor = job.color || TYPE_COLORS[job.type] || '#374151'
+  const typeColor = job.color || TYPE_COLOR[job.type] || '#374151'
 
   return (
     <div className={styles.card}>
-      {/* 상단: 정부 배지 + 사업유형 */}
+      {/* 상단: 정부 배지 + 유형 + 거리 */}
       <div className={styles.top}>
-        <div className={styles.govBadge}>
-          <span className={styles.govIcon}>🏛</span>
-          <span>공공일자리</span>
+        <div className={styles.topLeft}>
+          <div className={styles.govBadge}>
+            <span>🏛</span>
+            <span>공공일자리</span>
+          </div>
+          <span
+            className={styles.typePill}
+            style={{ background: typeColor + '18', color: typeColor, borderColor: typeColor + '40' }}
+          >
+            {job.type}
+          </span>
         </div>
-        <span
-          className={styles.typePill}
-          style={{ background: typeColor + '18', color: typeColor, borderColor: typeColor + '40' }}
-        >
-          {job.type}
-        </span>
+        {job.distance && (
+          <span className={styles.distBadge}>{job.distance}</span>
+        )}
       </div>
 
-      {/* 사업명 + 수행기관 */}
+      {/* 사업명 */}
       <div className={styles.title}>{job.programName}</div>
-      {job.executingOrg ? (
-        <div className={styles.org}>{job.executingOrg} · {job.agencyName}</div>
-      ) : (
-        <div className={styles.org}>{job.agencyName}</div>
+
+      {/* 수행기관 */}
+      {job.executingOrg && (
+        <div className={styles.orgRow}>
+          <span className={styles.orgLabel}>수행기관</span>
+          <span className={styles.orgName}>{job.executingOrg}</span>
+        </div>
       )}
 
       {/* 정보 그리드 */}
       <div className={styles.infoGrid}>
-        {job.pay != null ? (
-          <div className={styles.infoItem}>
-            <span className={styles.infoIcon}>💰</span>
-            <span className={styles.infoVal}>{job.pay.toLocaleString()}원</span>
-            {job.hours && <span className={styles.infoSub}>/{job.hours}시간</span>}
-          </div>
-        ) : (
-          <div className={styles.infoItem}>
-            <span className={styles.infoIcon}>💰</span>
-            <span className={styles.infoVal}>활동비 문의</span>
-          </div>
-        )}
+        <div className={styles.infoItem}>
+          <span className={styles.infoIcon}>💰</span>
+          <span className={styles.infoVal}>
+            {job.pay != null ? `${job.pay.toLocaleString()}원` : '활동비 문의'}
+          </span>
+        </div>
+        <div className={styles.infoItem}>
+          <span className={styles.infoIcon}>👤</span>
+          <span className={styles.infoVal}>{job.targetAge}</span>
+        </div>
         <div className={styles.infoItem}>
           <span className={styles.infoIcon}>📍</span>
           <span className={styles.infoVal}>{job.region}</span>
@@ -57,44 +63,47 @@ export default function PublicJobCard({ job, onApply, applied }) {
           <span className={styles.infoIcon}>📅</span>
           <span className={styles.infoVal}>{job.period}</span>
         </div>
-        <div className={styles.infoItem}>
-          <span className={styles.infoIcon}>👤</span>
-          <span className={styles.infoVal}>{job.targetAge}</span>
-        </div>
       </div>
 
-      {/* 모집 현황 + 신청 버튼 */}
-      <div className={styles.bottom}>
-        <div className={styles.slotsWrap}>
-          {job.remaining != null ? (
-            <>
-              <div className={styles.slotsBar}>
-                <div
-                  className={styles.slotsFill}
-                  style={{
-                    width: job.slots > 0
-                      ? `${((job.slots - job.remaining) / job.slots) * 100}%`
-                      : '0%',
-                    background: typeColor,
-                  }}
-                />
-              </div>
-              <span className={styles.slotsText}>
-                잔여 <strong>{job.remaining}</strong>/{job.slots}명
-              </span>
-            </>
-          ) : (
-            <span className={styles.slotsText}>
-              목표 <strong>{job.slots > 0 ? job.slots.toLocaleString() : '-'}</strong>명 · 수행기관 문의
+      {/* 연락처 */}
+      <div className={styles.contactBox}>
+        {job.contact ? (
+          <>
+            <span className={styles.contactIcon}>📞</span>
+            <span className={styles.contactText}>{job.contact}</span>
+            <a href={`tel:${job.contact.replace(/[^0-9]/g, '')}`} className={styles.callBtn}>
+              전화하기
+            </a>
+          </>
+        ) : (
+          <>
+            <span className={styles.contactIcon}>📞</span>
+            <span className={styles.contactText}>
+              {job.executingOrg || job.agencyName}
             </span>
+            <span className={styles.contactHint}>에 직접 문의</span>
+          </>
+        )}
+      </div>
+
+      {/* 모집 현황 + 관심 버튼 */}
+      <div className={styles.bottom}>
+        <div className={styles.slotsInfo}>
+          {job.slots > 0 ? (
+            <span className={styles.slotsText}>
+              목표 <strong>{job.slots.toLocaleString()}</strong>명
+              {job.year ? ` · ${job.year}년 사업` : ''}
+            </span>
+          ) : (
+            <span className={styles.slotsText}>모집 인원 문의</span>
           )}
         </div>
         <button
           className={`${styles.applyBtn} ${applied ? styles.applied : ''}`}
           onClick={onApply}
-          disabled={applied || job.remaining === 0}
+          disabled={applied}
         >
-          {applied ? '관심 등록됨' : '관심 등록'}
+          {applied ? '관심 등록됨 ✓' : '관심 등록'}
         </button>
       </div>
     </div>

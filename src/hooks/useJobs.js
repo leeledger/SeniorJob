@@ -27,6 +27,14 @@ export function useJobs() {
   useEffect(() => {
     let cancelled = false
 
+    // Supabase snake_case → JobCard 기대 필드명 정규화
+    const normalize = (j) => ({
+      ...j,
+      timeSlot:  j.time_slot  ?? j.timeSlot  ?? '',
+      dateLabel: j.date_label ?? j.dateLabel ?? '오늘',
+      qr:        true,
+    })
+
     const fetchJobs = () =>
       supabase
         .from('jobs')
@@ -37,14 +45,13 @@ export function useJobs() {
     fetchJobs().then(({ data, error: err }) => {
       if (cancelled) return
       if (err) { setError(err.message); setLoading(false); return }
-      const list = data ?? []
+      const list = (data ?? []).map(normalize)
       setJobs(list)
       setLoading(false)
-      // 좌표 없는 공고 백그라운드 지오코딩 후 다시 fetch
       if (list.some(j => j.address && !j.lat)) {
         backfillCoords(list).then(() => {
           if (cancelled) return
-          fetchJobs().then(({ data }) => { if (data && !cancelled) setJobs(data) })
+          fetchJobs().then(({ data: d }) => { if (d && !cancelled) setJobs(d.map(normalize)) })
         })
       }
     })
@@ -53,7 +60,7 @@ export function useJobs() {
     const channel = supabase
       .channel('jobs-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs' }, () => {
-        fetchJobs().then(({ data }) => { if (data && !cancelled) setJobs(data) })
+        fetchJobs().then(({ data: d }) => { if (d && !cancelled) setJobs(d.map(normalize)) })
       })
       .subscribe()
 

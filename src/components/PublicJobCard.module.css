@@ -6,20 +6,24 @@
   margin-bottom: 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
+  transition: box-shadow 0.15s;
 }
+.card:hover { box-shadow: var(--shadow); }
 
+/* 상단 행 */
 .top {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
+.topLeft { display: flex; align-items: center; gap: 6px; }
 
 .govBadge {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.72rem;
+  gap: 3px;
+  font-size: 0.7rem;
   font-weight: 600;
   color: #374151;
   background: #F3F4F6;
@@ -27,7 +31,6 @@
   border-radius: 20px;
   padding: 2px 8px;
 }
-.govIcon { font-size: 0.75rem; }
 
 .typePill {
   font-size: 0.7rem;
@@ -37,67 +40,101 @@
   border: 1px solid;
 }
 
+.distBadge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-light);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+/* 사업명 */
 .title {
-  font-size: 0.95rem;
+  font-size: 0.97rem;
   font-weight: 700;
   color: var(--ink);
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
-.org {
-  font-size: 0.75rem;
+/* 수행기관 행 */
+.orgRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.orgLabel {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--ink-4);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.orgName {
+  font-size: 0.78rem;
   color: var(--ink-3);
-  margin-top: -2px;
+  font-weight: 500;
 }
 
+/* 정보 그리드 */
 .infoGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px 8px;
-  margin: 2px 0;
+  gap: 3px 8px;
 }
+.infoItem { display: flex; align-items: center; gap: 4px; }
+.infoIcon { font-size: 0.72rem; }
+.infoVal  { font-size: 0.78rem; color: var(--ink); font-weight: 500; }
 
-.infoItem {
+/* 연락처 박스 */
+.contactBox {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 8px;
+  padding: 7px 10px;
+  margin-top: 2px;
 }
-.infoIcon { font-size: 0.75rem; }
-.infoVal { font-size: 0.78rem; color: var(--ink); font-weight: 500; }
-.infoSub { font-size: 0.72rem; color: var(--ink-3); }
+.contactIcon { font-size: 0.8rem; }
+.contactText {
+  flex: 1;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #166534;
+}
+.contactHint {
+  font-size: 0.72rem;
+  color: #16a34a;
+}
+.callBtn {
+  flex-shrink: 0;
+  background: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 14px;
+  padding: 4px 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.callBtn:hover { background: #15803d; }
 
+/* 하단 */
 .bottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-top: 4px;
+  margin-top: 2px;
 }
-
-.slotsWrap {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-}
-
-.slotsBar {
-  height: 4px;
-  background: #E5E7EB;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.slotsFill {
-  height: 100%;
-  border-radius: 4px;
-  transition: width 0.3s ease;
-}
-
-.slotsText {
-  font-size: 0.7rem;
-  color: var(--ink-3);
-}
+.slotsInfo { flex: 1; }
+.slotsText { font-size: 0.73rem; color: var(--ink-3); }
 .slotsText strong { color: var(--ink); }
 
 .applyBtn {
@@ -107,19 +144,15 @@
   border: none;
   border-radius: 20px;
   padding: 6px 16px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s;
+  white-space: nowrap;
 }
 .applyBtn:hover { opacity: 0.85; }
 .applyBtn.applied {
   background: #D1FAE5;
   color: #065F46;
-  cursor: default;
-}
-.applyBtn:disabled:not(.applied) {
-  background: #E5E7EB;
-  color: #9CA3AF;
   cursor: default;
 }

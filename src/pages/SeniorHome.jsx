@@ -5,23 +5,32 @@ import { useJobs, applyToJob } from '../hooks/useJobs.js'
 import { useLocation, haversine, formatDistance } from '../hooks/useLocation.js'
 import JobCard from '../components/JobCard.jsx'
 import PublicJobCard from '../components/PublicJobCard.jsx'
+import SearchBar from '../components/SearchBar.jsx'
 import BottomNav from '../components/BottomNav.jsx'
 import styles from './SeniorHome.module.css'
 
+// 검색어 매칭 헬퍼
+function matchSearch(fields, query) {
+  if (!query) return true
+  const q = query.toLowerCase()
+  return fields.some(f => f && f.toLowerCase().includes(q))
+}
+
 export default function SeniorHome({ nav }) {
-  const [tab, setTab] = useState('home')
-  const [sourceTab, setSourceTab] = useState('private') // 'public' | 'private'
-  const [category, setCategory] = useState('전체')
+  const [tab, setTab]             = useState('home')
+  const [sourceTab, setSourceTab] = useState('private')
+  const [category, setCategory]   = useState('전체')
   const [publicType, setPublicType] = useState('전체')
-  const [applied, setApplied] = useState([])
+  const [search, setSearch]       = useState('')
+  const [applied, setApplied]     = useState([])
 
   const { coords, address: myAddress, loading: locLoading } = useLocation()
-  const { jobs: publicJobs, loading: pubLoading, error: pubError } = usePublicJobs()
+  const { jobs: publicJobs, loading: pubLoading, error: pubError } = usePublicJobs(coords)
   const { jobs: privateJobs, loading: privLoading, error: privError } = useJobs()
 
   const PUBLIC_TYPES = ['전체', ...Array.from(new Set(publicJobs.map(j => j.type))).filter(Boolean)]
 
-  // 거리 계산 + 정렬
+  // 민간: 거리 계산 + 정렬 + 검색
   const jobsWithDist = privateJobs.map(job => {
     if (coords && job.lat && job.lng) {
       const km = haversine(coords.lat, coords.lng, job.lat, job.lng)
@@ -35,18 +44,17 @@ export default function SeniorHome({ nav }) {
     return a._km - b._km
   })
 
-  const filtered = jobsWithDist.filter(j => category === '전체' || j.category === category)
+  const filtered = jobsWithDist
+    .filter(j => category === '전체' || j.category === category)
+    .filter(j => matchSearch([j.task, j.company, j.address, j.description], search))
+
   const urgent = filtered.filter(j => j.urgent)
   const normal = filtered.filter(j => !j.urgent)
 
-  // 공공 일자리 — 사용자 지역 매칭 우선 정렬
-  const sortedPublic = [...publicJobs].sort((a, b) => {
-    if (!myAddress) return 0
-    const aMatch = a.region?.includes(myAddress.split(' ')[0]) ? -1 : 0
-    const bMatch = b.region?.includes(myAddress.split(' ')[0]) ? -1 : 0
-    return aMatch - bMatch
-  })
-  const filteredPublic = sortedPublic.filter(j => publicType === '전체' || j.type === publicType)
+  // 공공: 유형 필터 + 검색 (usePublicJobs 내부에서 거리순 정렬됨)
+  const filteredPublic = publicJobs
+    .filter(j => publicType === '전체' || j.type === publicType)
+    .filter(j => matchSearch([j.programName, j.executingOrg, j.region, j.type], search))
 
   const handleApply = async (jobId) => {
     try {
@@ -56,7 +64,6 @@ export default function SeniorHome({ nav }) {
       console.error('지원 실패:', e)
     }
   }
-
 
   const totalEarned = WORK_HISTORY.reduce((s, h) => s + h.pay, 0)
 
@@ -83,23 +90,32 @@ export default function SeniorHome({ nav }) {
             <button className={styles.withdrawBtn}>출금하기</button>
           </div>
 
-          {/* 소스 탭 — 공공 / 민간 */}
+          {/* 소스 탭 */}
           <div className={styles.sourceTabRow}>
             <button
               className={`${styles.sourceTab} ${sourceTab === 'private' ? styles.sourceTabActive : ''}`}
-              onClick={() => setSourceTab('private')}
+              onClick={() => { setSourceTab('private'); setSearch('') }}
             >
               🏪 민간 구인
+              {!privLoading && <span className={styles.tabCount}>{privateJobs.length}</span>}
             </button>
             <button
               className={`${styles.sourceTab} ${sourceTab === 'public' ? styles.sourceTabActive : ''}`}
-              onClick={() => setSourceTab('public')}
+              onClick={() => { setSourceTab('public'); setSearch('') }}
             >
               🏛 공공 일자리
+              {!pubLoading && <span className={styles.tabCount}>{publicJobs.length}</span>}
             </button>
           </div>
 
-          {/* 민간 구인 섹션 */}
+          {/* 검색창 — 공통 */}
+          <SearchBar
+            value={search}
+            onChange={setSearch}
+            placeholder={sourceTab === 'private' ? '업무·업체·주소 검색' : '사업명·기관·지역 검색'}
+          />
+
+          {/* ── 민간 구인 ── */}
           {sourceTab === 'private' && (
             <>
               <div className={styles.catRow}>
@@ -120,7 +136,6 @@ export default function SeniorHome({ nav }) {
                   <span>공고 불러오는 중...</span>
                 </div>
               )}
-
               {privError && (
                 <div className={styles.errorBox}>
                   <span>⚠️ 데이터를 불러오지 못했습니다</span>
@@ -137,43 +152,44 @@ export default function SeniorHome({ nav }) {
                       </div>
                       {urgent.map(job => (
                         <JobCard
-                          key={job.id}
-                          job={job}
+                          key={job.id} job={job}
                           applied={applied.includes(job.id)}
                           onClick={() => nav('job-detail', job)}
-                          onApply={(e) => { e.stopPropagation(); handleApply(job.id) }}
+                          onApply={e => { e.stopPropagation(); handleApply(job.id) }}
                         />
                       ))}
                     </>
                   )}
 
                   <div className={styles.sectionTitle}>
-                    내 주변 일자리
+                    {search ? '검색 결과' : coords ? '가까운 순' : '내 주변 일자리'}
                     <span className={styles.countBadge}>{normal.length}건</span>
                   </div>
-                  {normal.length === 0 && (
-                    <div className={styles.emptyBox}>등록된 공고가 없습니다</div>
+                  {normal.length === 0 ? (
+                    <div className={styles.emptyBox}>
+                      {search ? `"${search}" 검색 결과가 없습니다` : '등록된 공고가 없습니다'}
+                    </div>
+                  ) : (
+                    normal.map(job => (
+                      <JobCard
+                        key={job.id} job={job}
+                        applied={applied.includes(job.id)}
+                        onClick={() => nav('job-detail', job)}
+                        onApply={e => { e.stopPropagation(); handleApply(job.id) }}
+                      />
+                    ))
                   )}
-                  {normal.map(job => (
-                    <JobCard
-                      key={job.id}
-                      job={job}
-                      applied={applied.includes(job.id)}
-                      onClick={() => nav('job-detail', job)}
-                      onApply={(e) => { e.stopPropagation(); handleApply(job.id) }}
-                    />
-                  ))}
                 </>
               )}
             </>
           )}
 
-          {/* 공공 일자리 섹션 */}
+          {/* ── 공공 일자리 ── */}
           {sourceTab === 'public' && (
             <>
               <div className={styles.publicNotice}>
-                <span className={styles.publicNoticeIcon}>ℹ️</span>
-                한국노인인력개발원 공식 사업 · 수행기관에 직접 신청
+                <span>ℹ️</span>
+                한국노인인력개발원 공식 사업 · 거리 가까운 순 정렬
               </div>
 
               {pubLoading && (
@@ -182,7 +198,6 @@ export default function SeniorHome({ nav }) {
                   <span>공공 일자리 불러오는 중...</span>
                 </div>
               )}
-
               {pubError && (
                 <div className={styles.errorBox}>
                   <span>⚠️ 데이터를 불러오지 못했습니다</span>
@@ -205,17 +220,22 @@ export default function SeniorHome({ nav }) {
                   </div>
 
                   <div className={styles.sectionTitle}>
-                    전국 노인일자리 사업
+                    {search ? '검색 결과' : coords ? '가까운 순' : '전국 노인일자리 사업'}
                     <span className={styles.countBadge}>{filteredPublic.length}건</span>
                   </div>
-                  {filteredPublic.map(job => (
-                    <PublicJobCard
-                      key={job.id}
-                      job={job}
-                      applied={applied.includes(job.id)}
-                      onApply={() => setApplied(prev => [...prev, job.id])}
-                    />
-                  ))}
+                  {filteredPublic.length === 0 ? (
+                    <div className={styles.emptyBox}>
+                      {search ? `"${search}" 검색 결과가 없습니다` : '공고가 없습니다'}
+                    </div>
+                  ) : (
+                    filteredPublic.map(job => (
+                      <PublicJobCard
+                        key={job.id} job={job}
+                        applied={applied.includes(job.id)}
+                        onApply={() => setApplied(prev => [...prev, job.id])}
+                      />
+                    ))
+                  )}
                 </>
               )}
             </>
@@ -257,7 +277,7 @@ export default function SeniorHome({ nav }) {
           <div className={styles.profileCard}>
             <div className={styles.avatar}>영</div>
             <div className={styles.profileName}>김영자 님</div>
-            <div className={styles.profileInfo}>67세 · 부산 해운대구</div>
+            <div className={styles.profileInfo}>67세 · {myAddress || '부산 해운대구'}</div>
             <div className={styles.ratingRow}>
               <span className={styles.ratingNum}>4.9</span>
               <span className={styles.ratingStars}>★★★★★</span>

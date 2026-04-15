@@ -1,0 +1,37 @@
+.wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 9px 14px;
+  margin-bottom: 12px;
+  transition: border-color 0.15s;
+}
+.wrap:focus-within {
+  border-color: var(--accent);
+}
+
+.icon { font-size: 0.9rem; flex-shrink: 0; }
+
+.input {
+  flex: 1;
+  border: none;
+  background: none;
+  font-size: 0.9rem;
+  color: var(--ink);
+  outline: none;
+}
+.input::placeholder { color: var(--ink-4); }
+
+.clear {
+  background: none;
+  border: none;
+  color: var(--ink-4);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+}
+.clear:hover { color: var(--ink-3); }
