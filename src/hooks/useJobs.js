@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabase.js'
+import { geocodeAddress } from './useLocation.js'
 
 // 민간 구인 공고 목록 — 실시간 구독
 export function useJobs() {
@@ -39,8 +40,10 @@ export function useJobs() {
   return { jobs, loading, error }
 }
 
-// 공고 등록
+// 공고 등록 (주소 → 좌표 자동 변환)
 export async function postJob(form) {
+  const geo = form.address ? await geocodeAddress(form.address) : null
+
   const { data, error } = await supabase
     .from('jobs')
     .insert([{
@@ -56,6 +59,8 @@ export async function postJob(form) {
       urgent:      form.urgent || false,
       description: form.desc,
       color:       '#2D6A4F',
+      lat:         geo?.lat ?? null,
+      lng:         geo?.lng ?? null,
     }])
     .select()
     .single()

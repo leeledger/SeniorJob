@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { CATEGORIES, WORK_HISTORY } from '../data/mockData.js'
 import { usePublicJobs } from '../hooks/usePublicJobs.js'
 import { useJobs, applyToJob } from '../hooks/useJobs.js'
+import { useLocation, haversine, formatDistance } from '../hooks/useLocation.js'
 import JobCard from '../components/JobCard.jsx'
 import PublicJobCard from '../components/PublicJobCard.jsx'
 import BottomNav from '../components/BottomNav.jsx'
@@ -14,14 +15,38 @@ export default function SeniorHome({ nav }) {
   const [publicType, setPublicType] = useState('전체')
   const [applied, setApplied] = useState([])
 
+  const { coords, address: myAddress, loading: locLoading } = useLocation()
   const { jobs: publicJobs, loading: pubLoading, error: pubError } = usePublicJobs()
   const { jobs: privateJobs, loading: privLoading, error: privError } = useJobs()
 
   const PUBLIC_TYPES = ['전체', ...Array.from(new Set(publicJobs.map(j => j.type))).filter(Boolean)]
 
-  const filtered = privateJobs.filter(j => category === '전체' || j.category === category)
+  // 거리 계산 + 정렬
+  const jobsWithDist = privateJobs.map(job => {
+    if (coords && job.lat && job.lng) {
+      const km = haversine(coords.lat, coords.lng, job.lat, job.lng)
+      return { ...job, distance: formatDistance(km), _km: km }
+    }
+    return { ...job, _km: null }
+  }).sort((a, b) => {
+    if (a._km == null && b._km == null) return 0
+    if (a._km == null) return 1
+    if (b._km == null) return -1
+    return a._km - b._km
+  })
+
+  const filtered = jobsWithDist.filter(j => category === '전체' || j.category === category)
   const urgent = filtered.filter(j => j.urgent)
   const normal = filtered.filter(j => !j.urgent)
+
+  // 공공 일자리 — 사용자 지역 매칭 우선 정렬
+  const sortedPublic = [...publicJobs].sort((a, b) => {
+    if (!myAddress) return 0
+    const aMatch = a.region?.includes(myAddress.split(' ')[0]) ? -1 : 0
+    const bMatch = b.region?.includes(myAddress.split(' ')[0]) ? -1 : 0
+    return aMatch - bMatch
+  })
+  const filteredPublic = sortedPublic.filter(j => publicType === '전체' || j.type === publicType)
 
   const handleApply = async (jobId) => {
     try {
@@ -32,7 +57,6 @@ export default function SeniorHome({ nav }) {
     }
   }
 
-  const filteredPublic = publicJobs.filter(j => publicType === '전체' || j.type === publicType)
 
   const totalEarned = WORK_HISTORY.reduce((s, h) => s + h.pay, 0)
 
@@ -44,7 +68,9 @@ export default function SeniorHome({ nav }) {
           <div className={styles.header}>
             <div>
               <div className={styles.greeting}>안녕하세요, 김영자 님 👋</div>
-              <div className={styles.location}>📍 부산시 해운대구 근처</div>
+              <div className={styles.location}>
+                📍 {locLoading ? '위치 확인 중...' : myAddress ? `${myAddress} 근처` : '위치 정보 없음'}
+              </div>
             </div>
             <button className={styles.notifBtn}>🔔</button>
           </div>
