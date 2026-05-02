@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { APPLICANTS } from '../data/mockData.js'
 import { postJob } from '../hooks/useJobs.js'
+import useApplicantDecisions from '../hooks/useApplicantDecisions.js'
 import { supabase } from '../supabase.js'
 import BottomNav from '../components/BottomNav.jsx'
 import styles from './EmployerHome.module.css'
@@ -9,12 +10,91 @@ const FORM_INIT = {
   company: '', task: '', category: '매장', pay: '', hours: '', timeSlot: '', date: '', address: '', desc: '', urgent: false,
 }
 
+const STATUS_TABS = [
+  { id: 'pending', label: '대기 중' },
+  { id: 'accepted', label: '수락' },
+  { id: 'rejected', label: '거절' },
+]
+
+function formatDecidedAt(ts) {
+  if (!ts) return ''
+  const d = new Date(ts)
+  const now = new Date()
+  const sameDay = d.toDateString() === now.toDateString()
+  const h = d.getHours()
+  const m = String(d.getMinutes()).padStart(2, '0')
+  const ampm = h < 12 ? '오전' : '오후'
+  const h12 = ((h + 11) % 12) + 1
+  const time = `${ampm} ${h12}:${m}`
+  if (sameDay) return `오늘 ${time}`
+  return `${d.getMonth() + 1}월 ${d.getDate()}일 ${time}`
+}
+
 export default function EmployerHome({ nav }) {
   const [tab, setTab] = useState('home')
   const [form, setForm] = useState(FORM_INIT)
   const [posted, setPosted] = useState(false)
   const [posting, setPosting] = useState(false)
   const [postedJobs, setPostedJobs] = useState([])
+  const [statusTab, setStatusTab] = useState('pending')
+  const [toast, setToast] = useState(null)
+  const toastTimer = useRef(null)
+  const decisions = useApplicantDecisions()
+
+  const showToast = (message, tone = 'default') => {
+    setToast({ message, tone })
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToast(null), 1800)
+  }
+
+  // unmount 시 토스트 timer 정리
+  useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current) }, [])
+
+  const handleAccept = async (applicant) => {
+    try {
+      await decisions.accept(applicant)
+      showToast(`${applicant.name}님을 수락했어요`, 'success')
+    } catch {
+      showToast('저장 실패 — 잠시 후 다시 시도해 주세요', 'muted')
+    }
+  }
+  const handleReject = async (applicant) => {
+    try {
+      await decisions.reject(applicant)
+      showToast(`${applicant.name}님을 거절했어요`, 'muted')
+    } catch {
+      showToast('저장 실패 — 잠시 후 다시 시도해 주세요', 'muted')
+    }
+  }
+  const handleReopen = async (applicant) => {
+    try {
+      await decisions.reset(applicant.id)
+      showToast(`${applicant.name}님을 대기 목록으로 되돌렸어요`)
+    } catch {
+      showToast('저장 실패 — 잠시 후 다시 시도해 주세요', 'muted')
+    }
+  }
+  const handleMatch = async (applicant) => {
+    const matched = !applicant.matchedAt
+    try {
+      await decisions.update(applicant.id, { matchedAt: matched ? Date.now() : null })
+      showToast(matched ? `${applicant.name}님 매칭을 확정했어요` : `${applicant.name}님 매칭을 취소했어요`, matched ? 'success' : 'muted')
+    } catch {
+      showToast('저장 실패 — 잠시 후 다시 시도해 주세요', 'muted')
+    }
+  }
+  const handleContact = (applicant) => {
+    const phone = applicant.phone || '010-0000-0000'
+    showToast(`📞 ${applicant.name}님 — ${phone} (데모)`)
+  }
+
+  // 로딩 중에는 결정 상태를 모르므로 결정 가능한 카드를 노출하지 않음 (플리커 방지)
+  const pendingApplicants = decisions.loading
+    ? []
+    : APPLICANTS.filter(a => decisions.statusOf(a.id) === 'pending')
+  const acceptedList = decisions.accepted
+  const rejectedList = decisions.rejected
+  const matchedCount = acceptedList.filter(a => a.matchedAt).length
 
   // Supabase에서 내 공고 목록 로드
   useEffect(() => {
@@ -104,26 +184,39 @@ export default function EmployerHome({ nav }) {
           </div>
 
           {/* 지원자 현황 */}
-          <div className={styles.sectionTitle}>오늘 신청한 시니어</div>
-          {APPLICANTS.map(a => (
-            <div key={a.id} className={styles.applicantCard}>
-              <div className={styles.applicantAvatar}>{a.name[0]}</div>
-              <div className={styles.applicantInfo}>
-                <div className={styles.applicantName}>
-                  {a.name}
-                  <span className={`${styles.aBadge} ${a.badge === '베테랑' ? styles.badgeGold : a.badge === '성실왕' ? styles.badgeGreen : ''}`}>
-                    {a.badge}
-                  </span>
-                </div>
-                <div className={styles.applicantMeta}>{a.age}세 · {a.region} · {a.available}</div>
-                <div className={styles.applicantRating}>★ {a.rating} · {a.jobs}건 완료</div>
-              </div>
-              <div className={styles.applicantActions}>
-                <button className={styles.acceptBtn}>수락</button>
-                <button className={styles.rejectBtn}>거절</button>
-              </div>
+          <div className={styles.sectionHead}>
+            <div className={styles.sectionTitle}>오늘 신청한 시니어</div>
+            <button className={styles.sectionLink} onClick={() => setTab('applicants')}>
+              전체 관리 →
+            </button>
+          </div>
+          {decisions.loading ? (
+            <div className={styles.emptyMini}>지원자 정보를 불러오는 중...</div>
+          ) : pendingApplicants.length === 0 ? (
+            <div className={styles.emptyMini}>
+              모든 지원자를 확인했어요. 수락한 시니어는 <strong>지원자</strong> 탭에서 관리해요.
             </div>
-          ))}
+          ) : (
+            pendingApplicants.map(a => (
+              <div key={a.id} className={styles.applicantCard}>
+                <div className={styles.applicantAvatar}>{a.name[0]}</div>
+                <div className={styles.applicantInfo}>
+                  <div className={styles.applicantName}>
+                    {a.name}
+                    <span className={`${styles.aBadge} ${a.badge === '베테랑' ? styles.badgeGold : a.badge === '성실왕' ? styles.badgeGreen : ''}`}>
+                      {a.badge}
+                    </span>
+                  </div>
+                  <div className={styles.applicantMeta}>{a.age}세 · {a.region} · {a.available}</div>
+                  <div className={styles.applicantRating}>★ {a.rating} · {a.jobs}건 완료</div>
+                </div>
+                <div className={styles.applicantActions}>
+                  <button className={styles.acceptBtn} onClick={() => handleAccept(a)}>수락</button>
+                  <button className={styles.rejectBtn} onClick={() => handleReject(a)}>거절</button>
+                </div>
+              </div>
+            ))
+          )}
 
           <div className={styles.ctaBox}>
             <div className={styles.ctaTitle}>새 인력이 필요하신가요?</div>
@@ -264,6 +357,183 @@ export default function EmployerHome({ nav }) {
         </div>
       )}
 
+      {/* APPLICANTS: 지원자 관리 */}
+      {tab === 'applicants' && (
+        <div className={styles.content}>
+          <div className={styles.header}>
+            <div className={styles.pageTitle}>지원자 관리</div>
+          </div>
+
+          {decisions.error && (
+            <div className={styles.errorBanner}>
+              지원자 결정 데이터를 불러올 수 없어요. <code>supabase_migration_applicant_decisions.sql</code>이 적용됐는지 확인해 주세요.
+            </div>
+          )}
+
+          {/* 상단 요약 */}
+          <div className={styles.summaryStrip}>
+            <div className={styles.summaryItem}>
+              <div className={styles.summaryNum}>{pendingApplicants.length}</div>
+              <div className={styles.summaryLabel}>대기 중</div>
+            </div>
+            <div className={styles.summaryDivider} />
+            <div className={styles.summaryItem}>
+              <div className={styles.summaryNum} style={{ color: 'var(--accent)' }}>{acceptedList.length}</div>
+              <div className={styles.summaryLabel}>수락</div>
+            </div>
+            <div className={styles.summaryDivider} />
+            <div className={styles.summaryItem}>
+              <div className={styles.summaryNum} style={{ color: 'var(--accent-2)' }}>{matchedCount}</div>
+              <div className={styles.summaryLabel}>매칭 확정</div>
+            </div>
+            <div className={styles.summaryDivider} />
+            <div className={styles.summaryItem}>
+              <div className={styles.summaryNum} style={{ color: 'var(--ink-3)' }}>{rejectedList.length}</div>
+              <div className={styles.summaryLabel}>거절</div>
+            </div>
+          </div>
+
+          {/* 세그먼트 토글 */}
+          <div className={styles.segments} role="tablist">
+            {STATUS_TABS.map(s => {
+              const count = s.id === 'pending' ? pendingApplicants.length
+                : s.id === 'accepted' ? acceptedList.length
+                : rejectedList.length
+              return (
+                <button
+                  key={s.id}
+                  role="tab"
+                  aria-selected={statusTab === s.id}
+                  className={`${styles.segmentBtn} ${statusTab === s.id ? styles.segmentBtnActive : ''}`}
+                  onClick={() => setStatusTab(s.id)}
+                >
+                  {s.label} <span className={styles.segmentCount}>{count}</span>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* 대기 중 */}
+          {statusTab === 'pending' && (
+            <>
+              {decisions.loading ? (
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyTitle}>불러오는 중...</div>
+                </div>
+              ) : pendingApplicants.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyIcon}>✓</div>
+                  <div className={styles.emptyTitle}>대기 중인 지원자가 없어요</div>
+                  <div className={styles.emptySub}>새 지원자가 들어오면 여기에 표시됩니다.</div>
+                </div>
+              ) : (
+                pendingApplicants.map(a => (
+                  <div key={a.id} className={styles.applicantCard}>
+                    <div className={styles.applicantAvatar}>{a.name[0]}</div>
+                    <div className={styles.applicantInfo}>
+                      <div className={styles.applicantName}>
+                        {a.name}
+                        <span className={`${styles.aBadge} ${a.badge === '베테랑' ? styles.badgeGold : a.badge === '성실왕' ? styles.badgeGreen : ''}`}>
+                          {a.badge}
+                        </span>
+                      </div>
+                      <div className={styles.applicantMeta}>{a.age}세 · {a.region} · {a.available}</div>
+                      <div className={styles.applicantRating}>★ {a.rating} · {a.jobs}건 완료</div>
+                    </div>
+                    <div className={styles.applicantActions}>
+                      <button className={styles.acceptBtn} onClick={() => handleAccept(a)}>수락</button>
+                      <button className={styles.rejectBtn} onClick={() => handleReject(a)}>거절</button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </>
+          )}
+
+          {/* 수락 */}
+          {statusTab === 'accepted' && (
+            <>
+              {acceptedList.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyIcon}>👥</div>
+                  <div className={styles.emptyTitle}>아직 수락한 시니어가 없어요</div>
+                  <div className={styles.emptySub}>대기 중 탭에서 시니어를 수락해 보세요.</div>
+                </div>
+              ) : (
+                acceptedList.map(a => (
+                  <div key={a.id} className={`${styles.decisionCard} ${a.matchedAt ? styles.matchedCard : ''}`}>
+                    <div className={styles.decisionHead}>
+                      <div className={styles.applicantAvatar}>{a.name?.[0] || '?'}</div>
+                      <div className={styles.applicantInfo}>
+                        <div className={styles.applicantName}>
+                          {a.name}
+                          {a.matchedAt ? (
+                            <span className={`${styles.aBadge} ${styles.badgeMatched}`}>매칭 확정</span>
+                          ) : (
+                            <span className={`${styles.aBadge} ${styles.badgeGreen}`}>수락됨</span>
+                          )}
+                        </div>
+                        <div className={styles.applicantMeta}>{a.age}세 · {a.region} · {a.available}</div>
+                        <div className={styles.applicantRating}>★ {a.rating} · {a.jobs}건 완료</div>
+                      </div>
+                    </div>
+                    <div className={styles.decisionMeta}>
+                      <span>수락 {formatDecidedAt(a.decidedAt)}</span>
+                      {a.matchedAt && <span>· 매칭 {formatDecidedAt(a.matchedAt)}</span>}
+                    </div>
+                    <div className={styles.decisionActions}>
+                      <button className={styles.actionGhost} onClick={() => handleContact(a)}>📞 연락처</button>
+                      <button
+                        className={a.matchedAt ? styles.actionGhost : styles.actionPrimary}
+                        onClick={() => handleMatch(a)}
+                      >
+                        {a.matchedAt ? '매칭 취소' : '✓ 매칭 확정'}
+                      </button>
+                      <button className={styles.actionGhost} onClick={() => handleReopen(a)}>대기로</button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </>
+          )}
+
+          {/* 거절 */}
+          {statusTab === 'rejected' && (
+            <>
+              {rejectedList.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyIcon}>—</div>
+                  <div className={styles.emptyTitle}>거절한 시니어가 없어요</div>
+                  <div className={styles.emptySub}>거절 이력은 여기에 보관됩니다.</div>
+                </div>
+              ) : (
+                rejectedList.map(a => (
+                  <div key={a.id} className={`${styles.decisionCard} ${styles.rejectedCard}`}>
+                    <div className={styles.decisionHead}>
+                      <div className={styles.applicantAvatar}>{a.name?.[0] || '?'}</div>
+                      <div className={styles.applicantInfo}>
+                        <div className={styles.applicantName}>
+                          {a.name}
+                          <span className={`${styles.aBadge} ${styles.badgeRejected}`}>거절</span>
+                        </div>
+                        <div className={styles.applicantMeta}>{a.age}세 · {a.region} · {a.available}</div>
+                      </div>
+                    </div>
+                    <div className={styles.decisionMeta}>
+                      <span>거절 {formatDecidedAt(a.decidedAt)}</span>
+                    </div>
+                    <div className={styles.decisionActions}>
+                      <button className={styles.actionPrimary} onClick={() => handleAccept(a)}>다시 수락</button>
+                      <button className={styles.actionGhost} onClick={() => handleReopen(a)}>대기로</button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </>
+          )}
+        </div>
+      )}
+
       {/* MANAGE: 공고 관리 */}
       {tab === 'manage' && (
         <div className={styles.content}>
@@ -282,6 +552,12 @@ export default function EmployerHome({ nav }) {
             </div>
           ))}
           <button className={styles.newPostBtn} onClick={() => setTab('post')}>+ 새 공고 올리기</button>
+        </div>
+      )}
+
+      {toast && (
+        <div className={`${styles.toast} ${toast.tone === 'success' ? styles.toastSuccess : toast.tone === 'muted' ? styles.toastMuted : ''}`}>
+          {toast.message}
         </div>
       )}
 

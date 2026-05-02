@@ -10,7 +10,8 @@ const SENIOR_TABS = [
 const EMPLOYER_TABS = [
   { id: 'home', icon: '🏠', label: '홈' },
   { id: 'post', icon: '✏️', label: '공고 올리기' },
-  { id: 'manage', icon: '📊', label: '관리' },
+  { id: 'applicants', icon: '👥', label: '지원자' },
+  { id: 'manage', icon: '📊', label: '공고 관리' },
 ]
 
 export default function BottomNav({ tab, setTab, mode }) {
