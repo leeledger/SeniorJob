@@ -137,12 +137,86 @@
   background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 0.9rem 1.1rem; margin-bottom: 10px;
   display: flex; justify-content: space-between; align-items: center;
+  width: 100%; cursor: pointer; text-align: left;
+  transition: border-color 0.15s, background 0.15s;
 }
+.manageCard:hover { border-color: var(--accent); background: var(--accent-light); }
+.manageLeft { flex: 1; min-width: 0; }
+.manageRight { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.chev { color: var(--ink-4); font-size: 1.4rem; line-height: 1; }
 .manageTask { font-size: 0.92rem; font-weight: 600; margin-bottom: 3px; }
 .manageMeta { font-size: 0.75rem; color: var(--ink-3); }
 .statusBadge { font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; font-weight: 600; flex-shrink: 0; }
 .statusActive { background: var(--accent-2-light); color: var(--accent-2); }
 .statusDone { background: var(--accent-light); color: var(--accent); }
+.statusClosed { background: var(--bg); color: var(--ink-3); border: 1px solid var(--border); }
+
+/* ===== 공고 상세 ===== */
+.backBtn {
+  background: none; border: 1px solid var(--border); border-radius: 16px;
+  padding: 5px 12px; font-size: 0.8rem; color: var(--ink-2); font-weight: 500;
+  cursor: pointer;
+}
+.backBtn:hover { border-color: var(--accent); color: var(--accent); }
+
+.detailHero {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.1rem 1.1rem 1rem;
+  margin-bottom: 12px;
+}
+.detailHeadRow { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
+.detailTitle { font-size: 1.1rem; font-weight: 700; color: var(--ink); flex: 1; }
+.detailCompany { font-size: 0.85rem; color: var(--ink-3); }
+.urgentChip {
+  display: inline-block; margin-top: 8px;
+  font-size: 0.7rem; padding: 3px 9px; border-radius: 20px;
+  background: #FEE2E2; color: #B91C1C; font-weight: 700;
+}
+
+.detailGrid {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 0.4rem 1rem;
+  margin-bottom: 12px;
+}
+.detailRow {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+.detailRow:last-child { border-bottom: none; }
+.detailLabel { color: var(--ink-3); }
+.detailValue { color: var(--ink); font-weight: 600; text-align: right; max-width: 60%; }
+
+.detailDescBox {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 0.95rem 1.1rem; margin-bottom: 14px;
+}
+.detailDescTitle { font-size: 0.78rem; font-weight: 700; color: var(--ink-2); margin-bottom: 6px; }
+.detailDesc { font-size: 0.85rem; color: var(--ink-2); line-height: 1.55; margin: 0; white-space: pre-wrap; }
+
+.detailSectionTitle {
+  font-size: 0.9rem; font-weight: 700; margin: 18px 0 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.detailCount {
+  font-size: 0.7rem; padding: 1px 8px; border-radius: 10px;
+  background: var(--accent-light); color: var(--accent); font-weight: 700;
+}
+
+.detailActions {
+  display: flex; gap: 8px; margin-top: 18px; padding-bottom: 8px;
+}
+.actionDanger {
+  flex: 1;
+  background: var(--bg-card); color: #B91C1C; border: 1px solid #FECACA;
+  border-radius: var(--radius-sm); padding: 12px;
+  font-size: 0.88rem; font-weight: 700; cursor: pointer;
+  transition: all 0.15s;
+}
+.actionDanger:hover:not(:disabled) { background: #FEF2F2; border-color: #FCA5A5; }
+.actionDanger:disabled { opacity: 0.5; cursor: not-allowed; }
+.detailActions .actionPrimary { padding: 12px; font-size: 0.88rem; }
+.detailActions .actionPrimary:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .newPostBtn {
   width: 100%; padding: 12px; background: none; border: 1.5px dashed var(--border-strong);

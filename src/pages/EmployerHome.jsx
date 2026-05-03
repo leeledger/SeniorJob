@@ -58,12 +58,17 @@ export default function EmployerHome({ nav }) {
   const [toast, setToast] = useState(null)
   const toastTimer = useRef(null)
   const [timeSlotMode, setTimeSlotMode] = useState('preset') // 'preset' | 'custom'
+  const [selectedJobId, setSelectedJobId] = useState(null)
+  const [jobDetail, setJobDetail] = useState(null)
+  const [jobApplicants, setJobApplicants] = useState([])
+  const [jobBusy, setJobBusy] = useState(false)
+  const [refreshSeq, setRefreshSeq] = useState(0)
   const decisions = useApplicantDecisions()
 
-  const showToast = (message, tone = 'default') => {
+  const showToast = (message, tone = 'default', durationMs = 1800) => {
     setToast({ message, tone })
     if (toastTimer.current) clearTimeout(toastTimer.current)
-    toastTimer.current = setTimeout(() => setToast(null), 1800)
+    toastTimer.current = setTimeout(() => setToast(null), durationMs)
   }
 
   // unmount 시 토스트 timer 정리
@@ -133,7 +138,7 @@ export default function EmployerHome({ nav }) {
           })))
         }
       })
-  }, [tab]) // 탭 전환 시마다 갱신
+  }, [tab, refreshSeq]) // 탭 전환 + 액션 후 갱신
 
   // 지원자 수 로드
   useEffect(() => {
@@ -150,6 +155,56 @@ export default function EmployerHome({ nav }) {
         setPostedJobs(prev => prev.map(j => ({ ...j, applicants: counts[j.id] || 0 })))
       })
   }, [postedJobs.length])
+
+  // 선택된 공고의 상세 + 지원자 로드
+  useEffect(() => {
+    if (!selectedJobId) { setJobDetail(null); setJobApplicants([]); return }
+    let cancelled = false
+    Promise.all([
+      supabase.from('jobs').select('*').eq('id', selectedJobId).single(),
+      supabase.from('applications').select('*').eq('job_id', selectedJobId).order('created_at', { ascending: false }),
+    ]).then(([jobRes, appsRes]) => {
+      if (cancelled) return
+      if (jobRes.error) { console.error('공고 상세 로드 실패:', jobRes.error); showToast(`로드 실패: ${jobRes.error.message}`, 'muted', 4000); return }
+      setJobDetail(jobRes.data)
+      setJobApplicants(appsRes.data || [])
+    })
+    return () => { cancelled = true }
+  }, [selectedJobId, refreshSeq])
+
+  const handleOpenJob = (jobId) => { setSelectedJobId(jobId); window.scrollTo(0, 0) }
+  const handleCloseDetail = () => setSelectedJobId(null)
+
+  const handleToggleJobStatus = async () => {
+    if (!jobDetail || jobBusy) return
+    setJobBusy(true)
+    const next = jobDetail.status === '구인중' ? '마감' : '구인중'
+    const { error } = await supabase.from('jobs').update({ status: next }).eq('id', jobDetail.id)
+    setJobBusy(false)
+    if (error) { showToast(`상태 변경 실패: ${error.message}`, 'muted', 4000); return }
+    setJobDetail(prev => prev ? { ...prev, status: next } : prev)
+    setRefreshSeq(s => s + 1)
+    showToast(next === '마감' ? '공고를 마감했어요' : '공고를 다시 열었어요', 'success')
+  }
+
+  const handleDeleteJob = async () => {
+    if (!jobDetail || jobBusy) return
+    if (!window.confirm('이 공고를 삭제할까요? 되돌릴 수 없어요.')) return
+    setJobBusy(true)
+    const { error } = await supabase.from('jobs').delete().eq('id', jobDetail.id)
+    setJobBusy(false)
+    if (error) { showToast(`삭제 실패: ${error.message}`, 'muted', 4000); return }
+    setSelectedJobId(null)
+    setRefreshSeq(s => s + 1)
+    showToast('공고를 삭제했어요', 'success')
+  }
+
+  const handleApplicationStatus = async (appId, status) => {
+    const { error } = await supabase.from('applications').update({ status }).eq('id', appId)
+    if (error) { showToast(`처리 실패: ${error.message}`, 'muted', 4000); return }
+    setJobApplicants(prev => prev.map(a => a.id === appId ? { ...a, status } : a))
+    showToast(status === '수락' ? '지원자를 수락했어요' : '지원자를 거절했어요', status === '수락' ? 'success' : 'muted')
+  }
 
   const missingFields = [
     !form.task && '업무 내용',
@@ -171,9 +226,15 @@ export default function EmployerHome({ nav }) {
       showToast('공고가 등록됐어요', 'success')
       setTimeout(() => { setPosted(false); setTab('manage') }, 1500)
     } catch (e) {
-      console.error('공고 등록 실패:', e)
+      console.error('공고 등록 실패:', {
+        message: e?.message,
+        code: e?.code,
+        details: e?.details,
+        hint: e?.hint,
+        raw: e,
+      })
       const msg = e?.message || '알 수 없는 오류'
-      showToast(`등록 실패: ${msg}`, 'muted')
+      showToast(`등록 실패: ${msg}`, 'muted', 6000)
     } finally {
       setPosting(false)
     }
@@ -595,24 +656,158 @@ export default function EmployerHome({ nav }) {
         </div>
       )}
 
-      {/* MANAGE: 공고 관리 */}
-      {tab === 'manage' && (
+      {/* MANAGE: 공고 관리 (목록) */}
+      {tab === 'manage' && !selectedJobId && (
         <div className={styles.content}>
           <div className={styles.header}>
             <div className={styles.pageTitle}>공고 관리</div>
           </div>
-          {postedJobs.map(j => (
-            <div key={j.id} className={styles.manageCard}>
-              <div className={styles.manageLeft}>
-                <div className={styles.manageTask}>{j.task}</div>
-                <div className={styles.manageMeta}>{j.date} · 지원자 {j.applicants}명</div>
-              </div>
-              <span className={`${styles.statusBadge} ${j.status === '매칭 완료' ? styles.statusDone : styles.statusActive}`}>
-                {j.status}
-              </span>
+          {postedJobs.length === 0 ? (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyIcon}>📋</div>
+              <div className={styles.emptyTitle}>등록된 공고가 없어요</div>
+              <div className={styles.emptySub}>새 공고를 올려보세요.</div>
             </div>
-          ))}
+          ) : (
+            postedJobs.map(j => (
+              <button
+                key={j.id}
+                className={styles.manageCard}
+                onClick={() => handleOpenJob(j.id)}
+              >
+                <div className={styles.manageLeft}>
+                  <div className={styles.manageTask}>{j.task}</div>
+                  <div className={styles.manageMeta}>{j.date} · 지원자 {j.applicants}명</div>
+                </div>
+                <div className={styles.manageRight}>
+                  <span className={`${styles.statusBadge} ${j.status === '매칭 완료' ? styles.statusDone : j.status === '마감' ? styles.statusClosed : styles.statusActive}`}>
+                    {j.status}
+                  </span>
+                  <span className={styles.chev}>›</span>
+                </div>
+              </button>
+            ))
+          )}
           <button className={styles.newPostBtn} onClick={() => setTab('post')}>+ 새 공고 올리기</button>
+        </div>
+      )}
+
+      {/* MANAGE: 공고 상세 */}
+      {tab === 'manage' && selectedJobId && (
+        <div className={styles.content}>
+          <div className={styles.header}>
+            <button className={styles.backBtn} onClick={handleCloseDetail}>← 목록</button>
+            <div className={styles.pageTitle}>공고 상세</div>
+            <span style={{ width: 56 }} />
+          </div>
+
+          {!jobDetail ? (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyTitle}>불러오는 중...</div>
+            </div>
+          ) : (
+            <>
+              <div className={styles.detailHero}>
+                <div className={styles.detailHeadRow}>
+                  <div className={styles.detailTitle}>{jobDetail.task}</div>
+                  <span className={`${styles.statusBadge} ${jobDetail.status === '마감' ? styles.statusClosed : styles.statusActive}`}>
+                    {jobDetail.status === '구인중' ? '구인 중' : jobDetail.status}
+                  </span>
+                </div>
+                <div className={styles.detailCompany}>{jobDetail.company}</div>
+                {jobDetail.urgent && <span className={styles.urgentChip}>🔥 급구</span>}
+              </div>
+
+              <div className={styles.detailGrid}>
+                <div className={styles.detailRow}>
+                  <span className={styles.detailLabel}>급여</span>
+                  <span className={styles.detailValue}>{Number(jobDetail.pay).toLocaleString()}원</span>
+                </div>
+                <div className={styles.detailRow}>
+                  <span className={styles.detailLabel}>근무 시간</span>
+                  <span className={styles.detailValue}>{jobDetail.hours}시간</span>
+                </div>
+                <div className={styles.detailRow}>
+                  <span className={styles.detailLabel}>시급 환산</span>
+                  <span className={styles.detailValue}>{Math.round(Number(jobDetail.pay) / Number(jobDetail.hours)).toLocaleString()}원/시간</span>
+                </div>
+                {jobDetail.time_slot && (
+                  <div className={styles.detailRow}>
+                    <span className={styles.detailLabel}>시간대</span>
+                    <span className={styles.detailValue}>{jobDetail.time_slot}</span>
+                  </div>
+                )}
+                <div className={styles.detailRow}>
+                  <span className={styles.detailLabel}>날짜</span>
+                  <span className={styles.detailValue}>{jobDetail.date_label}</span>
+                </div>
+                {jobDetail.address && (
+                  <div className={styles.detailRow}>
+                    <span className={styles.detailLabel}>근무지</span>
+                    <span className={styles.detailValue}>{jobDetail.address}</span>
+                  </div>
+                )}
+              </div>
+
+              {jobDetail.description && (
+                <div className={styles.detailDescBox}>
+                  <div className={styles.detailDescTitle}>상세 내용</div>
+                  <p className={styles.detailDesc}>{jobDetail.description}</p>
+                </div>
+              )}
+
+              {/* 지원자 섹션 */}
+              <div className={styles.detailSectionTitle}>
+                지원자 <span className={styles.detailCount}>{jobApplicants.length}</span>
+              </div>
+              {jobApplicants.length === 0 ? (
+                <div className={styles.emptyMini}>아직 지원자가 없어요.</div>
+              ) : (
+                jobApplicants.map(a => (
+                  <div key={a.id} className={styles.applicantCard}>
+                    <div className={styles.applicantAvatar}>{a.senior_name?.[0] || '?'}</div>
+                    <div className={styles.applicantInfo}>
+                      <div className={styles.applicantName}>
+                        {a.senior_name}
+                        <span className={`${styles.aBadge} ${a.status === '수락' ? styles.badgeGreen : a.status === '거절' ? styles.badgeRejected : ''}`}>
+                          {a.status || '검토중'}
+                        </span>
+                      </div>
+                      <div className={styles.applicantMeta}>{a.senior_age}세 · {a.senior_region}</div>
+                    </div>
+                    <div className={styles.applicantActions}>
+                      {a.status !== '수락' && a.status !== '거절' ? (
+                        <>
+                          <button className={styles.acceptBtn} onClick={() => handleApplicationStatus(a.id, '수락')}>수락</button>
+                          <button className={styles.rejectBtn} onClick={() => handleApplicationStatus(a.id, '거절')}>거절</button>
+                        </>
+                      ) : (
+                        <button className={styles.rejectBtn} onClick={() => handleApplicationStatus(a.id, '검토중')}>되돌리기</button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+
+              {/* 공고 액션 */}
+              <div className={styles.detailActions}>
+                <button
+                  className={styles.actionPrimary}
+                  onClick={handleToggleJobStatus}
+                  disabled={jobBusy}
+                >
+                  {jobDetail.status === '마감' ? '다시 구인 시작' : '공고 마감하기'}
+                </button>
+                <button
+                  className={styles.actionDanger}
+                  onClick={handleDeleteJob}
+                  disabled={jobBusy}
+                >
+                  공고 삭제
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
 
