@@ -16,6 +16,24 @@ const STATUS_TABS = [
   { id: 'rejected', label: '거절' },
 ]
 
+// 시니어 단기 일자리 자주 쓰는 시간대 (2~3시간 블록)
+const TIME_SLOT_OPTIONS = [
+  '오전 6:00 ~ 9:00',
+  '오전 7:00 ~ 10:00',
+  '오전 8:00 ~ 11:00',
+  '오전 9:00 ~ 12:00',
+  '오전 10:00 ~ 13:00',
+  '오전 11:00 ~ 14:00',
+  '오후 12:00 ~ 15:00',
+  '오후 1:00 ~ 4:00',
+  '오후 2:00 ~ 5:00',
+  '오후 3:00 ~ 6:00',
+  '오후 4:00 ~ 7:00',
+  '오후 5:00 ~ 8:00',
+  '오후 6:00 ~ 9:00',
+]
+const CUSTOM_TIME_SLOT = '__custom__'
+
 function formatDecidedAt(ts) {
   if (!ts) return ''
   const d = new Date(ts)
@@ -39,6 +57,7 @@ export default function EmployerHome({ nav }) {
   const [statusTab, setStatusTab] = useState('pending')
   const [toast, setToast] = useState(null)
   const toastTimer = useRef(null)
+  const [timeSlotMode, setTimeSlotMode] = useState('preset') // 'preset' | 'custom'
   const decisions = useApplicantDecisions()
 
   const showToast = (message, tone = 'default') => {
@@ -132,16 +151,29 @@ export default function EmployerHome({ nav }) {
       })
   }, [postedJobs.length])
 
+  const missingFields = [
+    !form.task && '업무 내용',
+    !form.pay && '급여',
+    !form.hours && '근무 시간',
+  ].filter(Boolean)
+
   const handlePost = async () => {
-    if (!form.task || !form.pay || !form.hours) return
+    if (missingFields.length > 0) {
+      showToast(`필수 항목 누락: ${missingFields.join(', ')}`, 'muted')
+      return
+    }
     setPosting(true)
     try {
       await postJob(form)
       setPosted(true)
       setForm(FORM_INIT)
+      setTimeSlotMode('preset')
+      showToast('공고가 등록됐어요', 'success')
       setTimeout(() => { setPosted(false); setTab('manage') }, 1500)
     } catch (e) {
       console.error('공고 등록 실패:', e)
+      const msg = e?.message || '알 수 없는 오류'
+      showToast(`등록 실패: ${msg}`, 'muted')
     } finally {
       setPosting(false)
     }
@@ -285,12 +317,36 @@ export default function EmployerHome({ nav }) {
 
               <div className={styles.formGroup}>
                 <label className={styles.label}>근무 시간대</label>
-                <input
-                  className={styles.input}
-                  placeholder="예: 오전 9:00 ~ 12:00"
-                  value={form.timeSlot}
-                  onChange={e => setForm(p => ({ ...p, timeSlot: e.target.value }))}
-                />
+                <select
+                  className={styles.select}
+                  value={timeSlotMode === 'custom' ? CUSTOM_TIME_SLOT : (TIME_SLOT_OPTIONS.includes(form.timeSlot) ? form.timeSlot : '')}
+                  onChange={e => {
+                    const v = e.target.value
+                    if (v === CUSTOM_TIME_SLOT) {
+                      setTimeSlotMode('custom')
+                      setForm(p => ({ ...p, timeSlot: '' }))
+                    } else {
+                      setTimeSlotMode('preset')
+                      setForm(p => ({ ...p, timeSlot: v }))
+                    }
+                  }}
+                >
+                  <option value="">시간대를 선택하세요</option>
+                  {TIME_SLOT_OPTIONS.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                  <option value={CUSTOM_TIME_SLOT}>✏️ 직접 입력...</option>
+                </select>
+                {timeSlotMode === 'custom' && (
+                  <input
+                    className={styles.input}
+                    style={{ marginTop: 8 }}
+                    placeholder="예: 오전 9:00 ~ 12:00"
+                    value={form.timeSlot}
+                    onChange={e => setForm(p => ({ ...p, timeSlot: e.target.value }))}
+                    autoFocus
+                  />
+                )}
               </div>
 
               <div className={styles.formGroup}>
@@ -346,12 +402,17 @@ export default function EmployerHome({ nav }) {
               )}
 
               <button
-                className={`${styles.postBtn} ${(!form.task || !form.pay || !form.hours || posting) ? styles.postBtnDisabled : ''}`}
+                className={`${styles.postBtn} ${(missingFields.length > 0 || posting) ? styles.postBtnDisabled : ''}`}
                 onClick={handlePost}
-                disabled={!form.task || !form.pay || !form.hours || posting}
+                disabled={posting}
               >
                 {posting ? '등록 중...' : '공고 등록하기'}
               </button>
+              {missingFields.length > 0 && !posting && (
+                <div className={styles.postHint}>
+                  필수 항목을 입력해 주세요: <strong>{missingFields.join(', ')}</strong>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -78,6 +78,19 @@
   transition: border-color 0.15s; outline: none;
 }
 .input:focus { border-color: var(--accent); }
+.select {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 0.95rem; background: var(--bg-card); color: var(--ink);
+  outline: none; transition: border-color 0.15s;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%237a7a7a' stroke-width='1.6'><path d='M1 1l5 5 5-5'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px 8px;
+  padding-right: 32px;
+  cursor: pointer;
+}
+.select:focus { border-color: var(--accent); }
 .textarea {
   width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
   font-size: 0.9rem; background: var(--bg-card); color: var(--ink); resize: vertical;
@@ -102,7 +115,11 @@
   transition: background 0.15s;
 }
 .postBtn:hover:not(.postBtnDisabled) { background: #c85a3e; }
-.postBtnDisabled { opacity: 0.4; cursor: not-allowed; }
+.postBtnDisabled { opacity: 0.4; }
+.postHint {
+  margin-top: 10px; font-size: 0.8rem; color: var(--ink-3); text-align: center;
+}
+.postHint strong { color: var(--accent-2); font-weight: 700; }
 
 /* Success */
 .successBox { text-align: center; padding: 3rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 10px; }

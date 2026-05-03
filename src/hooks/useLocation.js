@@ -17,16 +17,21 @@ export function formatDistance(km) {
   return km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`
 }
 
-// 주소 → 좌표 (공고 등록 시 사용)
-export async function geocodeAddress(address) {
+// 주소 → 좌표 (공고 등록 시 사용) — 5초 타임아웃 (Nominatim 지연 시 등록 차단 방지)
+export async function geocodeAddress(address, { timeoutMs = 5000 } = {}) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
   try {
     const q = encodeURIComponent(address)
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&countrycodes=kr`
+      `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&countrycodes=kr`,
+      { signal: controller.signal }
     )
     const data = await res.json()
     if (data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) }
-  } catch {}
+  } catch {} finally {
+    clearTimeout(timer)
+  }
   return null
 }
 
