@@ -217,6 +217,12 @@
 .actionDanger:disabled { opacity: 0.5; cursor: not-allowed; }
 .detailActions .actionPrimary { padding: 12px; font-size: 0.88rem; }
 .detailActions .actionPrimary:disabled { opacity: 0.5; cursor: not-allowed; }
+.detailActions .actionGhost { padding: 12px; font-size: 0.88rem; }
+.detailActions .actionGhost:disabled { opacity: 0.5; cursor: not-allowed; }
+.editFullBtn {
+  width: 100%; margin-top: 14px; padding: 12px;
+  font-size: 0.92rem;
+}
 
 .newPostBtn {
   width: 100%; padding: 12px; background: none; border: 1.5px dashed var(--border-strong);

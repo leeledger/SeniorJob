@@ -47,7 +47,7 @@ export default function JobDetail({ job, nav }) {
         </div>
         <div className={styles.infoRow}>
           <span>📍</span>
-          <span>{job.address} · 도보 {job.distance}</span>
+          <span>{job.address}{job.distance ? ` · 도보 ${job.distance}` : ''}</span>
         </div>
       </div>
 
@@ -56,14 +56,16 @@ export default function JobDetail({ job, nav }) {
         <p className={styles.desc}>{job.desc}</p>
       </div>
 
-      <div className={styles.section}>
-        <div className={styles.sectionTitle}>필요 조건</div>
-        <div className={styles.tagRow}>
-          {job.requirements.map(r => (
-            <span key={r} className={styles.tag}>{r}</span>
-          ))}
+      {(job.requirements ?? []).length > 0 && (
+        <div className={styles.section}>
+          <div className={styles.sectionTitle}>필요 조건</div>
+          <div className={styles.tagRow}>
+            {(job.requirements ?? []).map(r => (
+              <span key={r} className={styles.tag}>{r}</span>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className={styles.section}>
         <div className={styles.qrBox}>

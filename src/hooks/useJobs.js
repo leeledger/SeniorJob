@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabase.js'
 import { geocodeAddress } from './useLocation.js'
+import { getOwnerId } from '../lib/owner.js'
 
 // 좌표 없는 공고 자동 지오코딩 (Nominatim, 1.1초 간격)
 async function backfillCoords(jobs) {
@@ -27,12 +28,14 @@ export function useJobs() {
   useEffect(() => {
     let cancelled = false
 
-    // Supabase snake_case → JobCard 기대 필드명 정규화
+    // Supabase snake_case → JobCard/JobDetail 기대 필드명 정규화
     const normalize = (j) => ({
       ...j,
-      timeSlot:  j.time_slot  ?? j.timeSlot  ?? '',
-      dateLabel: j.date_label ?? j.dateLabel ?? '오늘',
-      qr:        true,
+      timeSlot:     j.time_slot   ?? j.timeSlot   ?? '',
+      dateLabel:    j.date_label  ?? j.dateLabel  ?? '오늘',
+      desc:         j.desc        ?? j.description ?? '',
+      requirements: j.requirements ?? [],
+      qr:           true,
     })
 
     const fetchJobs = () =>
@@ -94,6 +97,7 @@ export async function postJob(form) {
     hours,
     color:    '#2D6A4F',
     urgent:   Boolean(form.urgent),
+    owner_id: getOwnerId(),
   }
   if (form.timeSlot) row.time_slot   = form.timeSlot
   if (form.date)     row.date_label  = form.date

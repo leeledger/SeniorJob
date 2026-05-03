@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { APPLICANTS } from '../data/mockData.js'
 import { postJob } from '../hooks/useJobs.js'
+import { geocodeAddress } from '../hooks/useLocation.js'
 import useApplicantDecisions from '../hooks/useApplicantDecisions.js'
 import { supabase } from '../supabase.js'
+import { getOwnerId } from '../lib/owner.js'
 import BottomNav from '../components/BottomNav.jsx'
 import styles from './EmployerHome.module.css'
 
@@ -63,6 +65,10 @@ export default function EmployerHome({ nav }) {
   const [jobApplicants, setJobApplicants] = useState([])
   const [jobBusy, setJobBusy] = useState(false)
   const [refreshSeq, setRefreshSeq] = useState(0)
+  const [editing, setEditing] = useState(false)
+  const [editForm, setEditForm] = useState(FORM_INIT)
+  const [editTimeSlotMode, setEditTimeSlotMode] = useState('preset')
+  const [editSaving, setEditSaving] = useState(false)
   const decisions = useApplicantDecisions()
 
   const showToast = (message, tone = 'default', durationMs = 1800) => {
@@ -120,11 +126,12 @@ export default function EmployerHome({ nav }) {
   const rejectedList = decisions.rejected
   const matchedCount = acceptedList.filter(a => a.matchedAt).length
 
-  // Supabase에서 내 공고 목록 로드
+  // Supabase에서 내 공고 목록 로드 (이 기기에서 등록한 것만)
   useEffect(() => {
     supabase
       .from('jobs')
       .select('id, task, date_label, status')
+      .eq('owner_id', getOwnerId())
       .order('created_at', { ascending: false })
       .limit(20)
       .then(({ data }) => {
@@ -172,8 +179,88 @@ export default function EmployerHome({ nav }) {
     return () => { cancelled = true }
   }, [selectedJobId, refreshSeq])
 
-  const handleOpenJob = (jobId) => { setSelectedJobId(jobId); window.scrollTo(0, 0) }
-  const handleCloseDetail = () => setSelectedJobId(null)
+  const handleOpenJob = (jobId) => { setSelectedJobId(jobId); setEditing(false); window.scrollTo(0, 0) }
+  const handleCloseDetail = () => { setSelectedJobId(null); setEditing(false) }
+
+  const handleEditStart = () => {
+    if (!jobDetail) return
+    const ts = jobDetail.time_slot || ''
+    setEditForm({
+      company:  jobDetail.company || '',
+      task:     jobDetail.task || '',
+      category: jobDetail.category || '매장',
+      pay:      String(jobDetail.pay ?? ''),
+      hours:    String(jobDetail.hours ?? ''),
+      timeSlot: ts,
+      date:     jobDetail.date_label || '',
+      address:  jobDetail.address || '',
+      desc:     jobDetail.description || '',
+      urgent:   Boolean(jobDetail.urgent),
+    })
+    setEditTimeSlotMode(TIME_SLOT_OPTIONS.includes(ts) || !ts ? 'preset' : 'custom')
+    setEditing(true)
+    window.scrollTo(0, 0)
+  }
+  const handleEditCancel = () => setEditing(false)
+
+  const handleEditSave = async () => {
+    if (!jobDetail || editSaving) return
+    const task = editForm.task.trim()
+    const pay = Number(editForm.pay)
+    const hours = Number(editForm.hours)
+    if (!task)                   { showToast('업무 내용을 입력해 주세요', 'muted'); return }
+    if (!Number.isFinite(pay))   { showToast('급여는 숫자로 입력해 주세요', 'muted'); return }
+    if (!Number.isFinite(hours)) { showToast('근무 시간은 숫자로 입력해 주세요', 'muted'); return }
+
+    setEditSaving(true)
+    const company = editForm.company.trim()
+    const addressChanged = (editForm.address || '') !== (jobDetail.address || '')
+
+    const patch = {
+      company:  company || '우리 가게',
+      logo:     (company || '우리').slice(0, 2),
+      task,
+      category: editForm.category || '기타',
+      pay,
+      hours,
+      urgent:   Boolean(editForm.urgent),
+      time_slot:   editForm.timeSlot || null,
+      date_label:  editForm.date || jobDetail.date_label,
+      address:     editForm.address || null,
+      description: editForm.desc || null,
+    }
+    // 주소 변경 시 좌표 재계산 (5초 타임아웃)
+    if (addressChanged) {
+      if (editForm.address) {
+        const geo = await geocodeAddress(editForm.address)
+        patch.lat = geo?.lat ?? null
+        patch.lng = geo?.lng ?? null
+      } else {
+        patch.lat = null
+        patch.lng = null
+      }
+    }
+
+    const { data, error } = await supabase
+      .from('jobs')
+      .update(patch)
+      .eq('id', jobDetail.id)
+      .eq('owner_id', getOwnerId())
+      .select()
+      .single()
+    setEditSaving(false)
+
+    if (error) {
+      console.error('공고 수정 실패:', error)
+      const msg = [error.message, error.details, error.hint].filter(Boolean).join(' · ') || '알 수 없는 오류'
+      showToast(`수정 실패: ${msg}`, 'muted', 6000)
+      return
+    }
+    setJobDetail(data)
+    setEditing(false)
+    setRefreshSeq(s => s + 1)
+    showToast('공고를 수정했어요', 'success')
+  }
 
   const handleToggleJobStatus = async () => {
     if (!jobDetail || jobBusy) return
@@ -696,14 +783,138 @@ export default function EmployerHome({ nav }) {
       {tab === 'manage' && selectedJobId && (
         <div className={styles.content}>
           <div className={styles.header}>
-            <button className={styles.backBtn} onClick={handleCloseDetail}>← 목록</button>
-            <div className={styles.pageTitle}>공고 상세</div>
+            <button className={styles.backBtn} onClick={editing ? handleEditCancel : handleCloseDetail}>
+              {editing ? '← 취소' : '← 목록'}
+            </button>
+            <div className={styles.pageTitle}>{editing ? '공고 수정' : '공고 상세'}</div>
             <span style={{ width: 56 }} />
           </div>
 
           {!jobDetail ? (
             <div className={styles.emptyState}>
               <div className={styles.emptyTitle}>불러오는 중...</div>
+            </div>
+          ) : editing ? (
+            <div className={styles.formWrap}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>업체명</label>
+                <input
+                  className={styles.input}
+                  placeholder="예: 이마트 해운대점"
+                  value={editForm.company}
+                  onChange={e => setEditForm(p => ({ ...p, company: e.target.value }))}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>업무 내용 *</label>
+                <input
+                  className={styles.input}
+                  value={editForm.task}
+                  onChange={e => setEditForm(p => ({ ...p, task: e.target.value }))}
+                />
+              </div>
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>급여 (원) *</label>
+                  <input
+                    className={styles.input}
+                    type="number"
+                    value={editForm.pay}
+                    onChange={e => setEditForm(p => ({ ...p, pay: e.target.value }))}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>근무 시간 *</label>
+                  <input
+                    className={styles.input}
+                    type="number"
+                    value={editForm.hours}
+                    onChange={e => setEditForm(p => ({ ...p, hours: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>근무 시간대</label>
+                <select
+                  className={styles.select}
+                  value={editTimeSlotMode === 'custom' ? CUSTOM_TIME_SLOT : (TIME_SLOT_OPTIONS.includes(editForm.timeSlot) ? editForm.timeSlot : '')}
+                  onChange={e => {
+                    const v = e.target.value
+                    if (v === CUSTOM_TIME_SLOT) {
+                      setEditTimeSlotMode('custom')
+                      setEditForm(p => ({ ...p, timeSlot: '' }))
+                    } else {
+                      setEditTimeSlotMode('preset')
+                      setEditForm(p => ({ ...p, timeSlot: v }))
+                    }
+                  }}
+                >
+                  <option value="">시간대를 선택하세요</option>
+                  {TIME_SLOT_OPTIONS.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                  <option value={CUSTOM_TIME_SLOT}>✏️ 직접 입력...</option>
+                </select>
+                {editTimeSlotMode === 'custom' && (
+                  <input
+                    className={styles.input}
+                    style={{ marginTop: 8 }}
+                    placeholder="예: 오전 9:00 ~ 12:00"
+                    value={editForm.timeSlot}
+                    onChange={e => setEditForm(p => ({ ...p, timeSlot: e.target.value }))}
+                    autoFocus
+                  />
+                )}
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>근무 날짜</label>
+                <input
+                  className={styles.input}
+                  type="date"
+                  value={editForm.date && /^\d{4}-\d{2}-\d{2}$/.test(editForm.date) ? editForm.date : ''}
+                  placeholder={editForm.date}
+                  onChange={e => setEditForm(p => ({ ...p, date: e.target.value }))}
+                />
+                {editForm.date && !/^\d{4}-\d{2}-\d{2}$/.test(editForm.date) && (
+                  <div className={styles.postHint} style={{ textAlign: 'left', marginTop: 4 }}>
+                    현재: <strong>{editForm.date}</strong> (날짜를 새로 선택하면 갱신)
+                  </div>
+                )}
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>근무지 주소</label>
+                <input
+                  className={styles.input}
+                  value={editForm.address}
+                  onChange={e => setEditForm(p => ({ ...p, address: e.target.value }))}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>상세 내용</label>
+                <textarea
+                  className={styles.textarea}
+                  rows={3}
+                  value={editForm.desc}
+                  onChange={e => setEditForm(p => ({ ...p, desc: e.target.value }))}
+                />
+              </div>
+              <div className={styles.urgentToggle}>
+                <label className={styles.toggleLabel}>
+                  <input
+                    type="checkbox"
+                    checked={editForm.urgent}
+                    onChange={e => setEditForm(p => ({ ...p, urgent: e.target.checked }))}
+                    className={styles.checkbox}
+                  />
+                  <span>🔥 급구 표시</span>
+                </label>
+              </div>
+              <div className={styles.detailActions}>
+                <button className={styles.actionGhost} onClick={handleEditCancel} disabled={editSaving}>취소</button>
+                <button className={styles.actionPrimary} onClick={handleEditSave} disabled={editSaving}>
+                  {editSaving ? '저장 중...' : '저장'}
+                </button>
+              </div>
             </div>
           ) : (
             <>
@@ -790,9 +1001,16 @@ export default function EmployerHome({ nav }) {
               )}
 
               {/* 공고 액션 */}
+              <button
+                className={`${styles.actionPrimary} ${styles.editFullBtn}`}
+                onClick={handleEditStart}
+                disabled={jobBusy}
+              >
+                ✏️ 공고 수정
+              </button>
               <div className={styles.detailActions}>
                 <button
-                  className={styles.actionPrimary}
+                  className={styles.actionGhost}
                   onClick={handleToggleJobStatus}
                   disabled={jobBusy}
                 >
